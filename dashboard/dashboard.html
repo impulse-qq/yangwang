@@ -786,6 +786,19 @@
     </div>
     <div class="tpl-cats" id="tpl-cats"></div>
     <div class="tpl-grid" id="tpl-grid"></div>
+    <!-- 自由下旨 -->
+    <div style="margin-top:24px;padding-top:18px;border-top:1px solid var(--line)">
+      <div style="font-size:13px;font-weight:700;margin-bottom:8px">✍️ 自由下旨</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px">无需模板，直接用自然语言描述你的需求，系统会自动派发给太子处理</div>
+      <textarea id="free-edict-input" style="width:100%;min-height:80px;resize:vertical;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px;font-size:13px;color:var(--text);font-family:inherit" placeholder="例如：帮我分析一下最近三个月的销售数据趋势，生成图表和报告…"></textarea>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:10px">
+        <select id="free-edict-priority" style="background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:6px 10px;font-size:12px;color:var(--text)">
+          <option value="normal">普通优先级</option>
+          <option value="high">高优先级</option>
+        </select>
+        <button class="tpl-go" style="padding:8px 20px;font-size:13px" onclick="submitFreeEdict()">📜 下旨</button>
+      </div>
+    </div>
   </div>
 
   <!-- ══ 天下要闻 ══ -->
@@ -2948,6 +2961,8 @@ function openMemorial(jsonStr){
     ${t.output&&t.output!=='-'?`<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--line)">
       <div style="font-size:11px;font-weight:600;margin-bottom:4px">📦 产出物</div>
       <code style="font-size:11px;word-break:break-all">${esc(t.output)}</code>
+      <button class="btn btn-g" onclick="loadTaskOutput('${esc(t.id)}')" style="font-size:11px;padding:4px 12px;margin-left:8px">📖 查看奏章</button>
+      <div id="task-output-content" style="display:none;margin-top:10px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:14px;max-height:400px;overflow-y:auto;font-size:12px;line-height:1.7;white-space:pre-wrap;word-break:break-word"></div>
     </div>`:''}
 
     <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end">
@@ -3215,6 +3230,54 @@ function toggleTheme(){
     document.getElementById('theme-btn').textContent = '☀️';
   }
 })();
+
+/* ══ TASK OUTPUT / 奏章查看 ══ */
+async function loadTaskOutput(taskId){
+  const el = document.getElementById('task-output-content');
+  if(!el) return;
+  if(el.style.display !== 'none'){ el.style.display='none'; return; }
+  el.style.display='block';
+  el.textContent='加载中…';
+  try{
+    const r = await fetchJ(API+'/task-output/'+encodeURIComponent(taskId));
+    if(r.ok && r.exists && r.content){
+      el.textContent = r.content;
+    } else if(r.ok && !r.exists){
+      el.textContent = '（产出物文件不存在或尚未生成）';
+    } else {
+      el.textContent = r.error || '加载失败';
+    }
+  }catch(err){
+    el.textContent = '服务器连接失败';
+  }
+}
+
+/* ══ FREE EDICT ══ */
+async function submitFreeEdict(){
+  const input = document.getElementById('free-edict-input');
+  const text = (input.value||'').trim();
+  if(!text || text.length < 6){ toast('请输入至少6个字的旨意内容','err'); return; }
+  if(!confirm('确认下旨？\n\n'+text.substring(0,200)+(text.length>200?'…':''))) return;
+  const priority = document.getElementById('free-edict-priority').value;
+  try{
+    const r = await postJ(API+'/create-task', {
+      title: text.substring(0,120),
+      org: '中书省',
+      priority: priority,
+      templateId: '',
+      params: { content: text },
+    });
+    if(r.ok){
+      toast('📜 '+r.taskId+' 旨意已下达','ok',5000);
+      input.value = '';
+      loadAll();
+    } else {
+      toast(r.error||'下旨失败','err');
+    }
+  }catch(err){
+    toast('服务器连接失败','err');
+  }
+}
 
 /* ══ FEEDBACK ══ */
 function openFeedback(){
