@@ -1,1 +1,1 @@
-"""Edict Backend — 三省六部事件驱动架构。"""
+"""Edict Backend — 核心部各小队事件驱动架构。"""

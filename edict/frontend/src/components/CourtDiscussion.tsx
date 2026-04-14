@@ -18,9 +18,9 @@ import { api } from '../api';
 // ── 常量 ──
 
 const OFFICIAL_COLORS: Record<string, string> = {
-  taizi: '#e8a040', zhongshu: '#a07aff', menxia: '#6a9eff', shangshu: '#2ecc8a',
-  libu: '#f5c842', hubu: '#ff9a6a', bingbu: '#ff5270', xingbu: '#cc4444',
-  gongbu: '#44aaff', libu_hr: '#9b59b6',
+  vice: '#e8a040', strategy: '#a07aff', review: '#6a9eff', dispatch: '#2ecc8a',
+  scribe: '#f5c842', finance: '#ff9a6a', combat: '#ff5270', audit: '#cc4444',
+  build: '#44aaff', hr: '#9b59b6',
 };
 
 const EMOTION_EMOJI: Record<string, string> = {
@@ -30,12 +30,12 @@ const EMOTION_EMOJI: Record<string, string> = {
 
 const COURT_POSITIONS: Record<string, { x: number; y: number }> = {
   // 左列
-  zhongshu: { x: 15, y: 25 }, menxia: { x: 15, y: 45 }, shangshu: { x: 15, y: 65 },
+  strategy: { x: 15, y: 25 }, review: { x: 15, y: 45 }, dispatch: { x: 15, y: 65 },
   // 右列
-  libu: { x: 85, y: 20 }, hubu: { x: 85, y: 35 }, bingbu: { x: 85, y: 50 },
-  xingbu: { x: 85, y: 65 }, gongbu: { x: 85, y: 80 },
+  scribe: { x: 85, y: 20 }, finance: { x: 85, y: 35 }, combat: { x: 85, y: 50 },
+  audit: { x: 85, y: 65 }, build: { x: 85, y: 80 },
   // 中间
-  taizi: { x: 50, y: 20 }, libu_hr: { x: 50, y: 80 },
+  vice: { x: 50, y: 20 }, hr: { x: 50, y: 80 },
 };
 
 interface CourtMessage {
@@ -293,14 +293,14 @@ export default function CourtDiscussion() {
     setDiceResult(null);
   };
 
-  // ── 预设议题（从当前旨意中提取）──
+  // ── 预设议题（从当前委托中提取）──
   const activeEdicts = (liveStatus?.tasks || []).filter(
     (t) => /^JJC-/i.test(t.id) && !['Done', 'Cancelled'].includes(t.state),
   );
 
   const presetTopics = [
     ...activeEdicts.slice(0, 3).map((t) => ({
-      text: `讨论旨意 ${t.id}：${t.title}`,
+      text: `讨论委托 ${t.id}：${t.title}`,
       taskId: t.id,
       icon: '📜',
     })),
@@ -574,8 +574,8 @@ export default function CourtDiscussion() {
           {/* 官员站位 */}
           <div className="relative" style={{ minHeight: 250 }}>
             {/* 左列标签 */}
-            <div className="absolute left-0 top-0 text-[9px] text-[var(--muted)] opacity-50">三省</div>
-            <div className="absolute right-0 top-0 text-[9px] text-[var(--muted)] opacity-50">六部</div>
+            <div className="absolute left-0 top-0 text-[9px] text-[var(--muted)] opacity-50">核心部</div>
+            <div className="absolute right-0 top-0 text-[9px] text-[var(--muted)] opacity-50">各小队</div>
 
             {officials.map((o) => {
               const pos = COURT_POSITIONS[o.id] || { x: 50, y: 50 };

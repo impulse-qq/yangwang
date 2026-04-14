@@ -1,4 +1,4 @@
-# 三省六部 Windows 安装说明（简明版 + 详细版）
+# 核心部各小队 Windows 安装说明（简明版 + 详细版）
 
 > 适用于 Windows 用户。本文默认你下载的是**已经包含 Windows 兼容修复**的版本，因此不需要再手动改 Python 文件。
 
@@ -18,20 +18,20 @@ C:\Users\<YOUR_USER>\.openclaw\workspace\skills\edict
 ---
 
 ## 2. 如果以前装过旧版本，先删除旧链接
-如果你之前已经安装过旧版三省六部，请先检查并删除这些目录里的旧 `data` / `scripts` 链接：
+如果你之前已经安装过旧版核心部各小队，请先检查并删除这些目录里的旧 `data` / `scripts` 链接：
 
 ```text
-C:\Users\<YOUR_USER>\.openclaw\workspace-taizi
-C:\Users\<YOUR_USER>\.openclaw\workspace-zhongshu
-C:\Users\<YOUR_USER>\.openclaw\workspace-menxia
-C:\Users\<YOUR_USER>\.openclaw\workspace-shangshu
-C:\Users\<YOUR_USER>\.openclaw\workspace-hubu
-C:\Users\<YOUR_USER>\.openclaw\workspace-libu
-C:\Users\<YOUR_USER>\.openclaw\workspace-bingbu
-C:\Users\<YOUR_USER>\.openclaw\workspace-xingbu
-C:\Users\<YOUR_USER>\.openclaw\workspace-gongbu
-C:\Users\<YOUR_USER>\.openclaw\workspace-libu_hr
-C:\Users\<YOUR_USER>\.openclaw\workspace-zaochao
+C:\Users\<YOUR_USER>\.openclaw\workspace-vice
+C:\Users\<YOUR_USER>\.openclaw\workspace-strategy
+C:\Users\<YOUR_USER>\.openclaw\workspace-review
+C:\Users\<YOUR_USER>\.openclaw\workspace-dispatch
+C:\Users\<YOUR_USER>\.openclaw\workspace-finance
+C:\Users\<YOUR_USER>\.openclaw\workspace-scribe
+C:\Users\<YOUR_USER>\.openclaw\workspace-combat
+C:\Users\<YOUR_USER>\.openclaw\workspace-audit
+C:\Users\<YOUR_USER>\.openclaw\workspace-build
+C:\Users\<YOUR_USER>\.openclaw\workspace-hr
+C:\Users\<YOUR_USER>\.openclaw\workspace-intel
 ```
 
 重点删除里面已有的：
@@ -104,7 +104,7 @@ http://127.0.0.1:7891
 正常情况下：
 
 - 面板可以打开
-- `官员总览` 能显示三省六部官员信息
+- `官员总览` 能显示核心部各小队官员信息
 - `模型配置` 能显示 agent 列表
 - 右上角 Gateway 状态正常
 - 倒计时会持续刷新页面数据
@@ -135,21 +135,21 @@ http://127.0.0.1:7891
 
 ## 2. 为什么安装后还要核对 agent / subagent 配置
 
-在部分环境里，安装脚本可能没有把三省六部的 agent 配置完整落进 `openclaw.json`。
+在部分环境里，安装脚本可能没有把核心部各小队的 agent 配置完整落进 `openclaw.json`。
 
 因此建议你安装后主动确认：
 
-- `taizi`
-- `zhongshu`
-- `menxia`
-- `shangshu`
-- `hubu`
-- `libu`
-- `bingbu`
-- `xingbu`
-- `gongbu`
-- `libu_hr`
-- `zaochao`
+- `vice`
+- `strategy`
+- `review`
+- `dispatch`
+- `finance`
+- `scribe`
+- `combat`
+- `audit`
+- `build`
+- `hr`
+- `intel`
 
 这些 agent 是否都存在，且 `subagents.allowAgents` 是否正确。
 
@@ -157,7 +157,7 @@ http://127.0.0.1:7891
 
 ---
 
-## 3. `agents.json` 是干什么用的\r\n\r\n本仓库附带了一个脱敏版的：\r\n\r\n```text\r\nagents.json\r\n```\r\n\r\n它保留了三省六部 agent 的配置结构，包括：\r\n\r\n- `id`\r\n- `name`\r\n- `workspace`\r\n- `agentDir`\r\n- `subagents.allowAgents`\r\n\r\n其中路径部分已经用 `<YOUR_USER>` 做了脱敏处理。\r\n\r\n使用时请先把：\r\n\r\n```text\r\n<YOUR_USER>\r\n```\r\n\r\n替换成你自己的 Windows 用户名，再复制到对应配置中。\r\n\r\n---\r\n\r\n## 4. 为什么还要确认 `tools.sessions.visibility = all`
+## 3. `agents.json` 是干什么用的\r\n\r\n本仓库附带了一个脱敏版的：\r\n\r\n```text\r\nagents.json\r\n```\r\n\r\n它保留了核心部各小队 agent 的配置结构，包括：\r\n\r\n- `id`\r\n- `name`\r\n- `workspace`\r\n- `agentDir`\r\n- `subagents.allowAgents`\r\n\r\n其中路径部分已经用 `<YOUR_USER>` 做了脱敏处理。\r\n\r\n使用时请先把：\r\n\r\n```text\r\n<YOUR_USER>\r\n```\r\n\r\n替换成你自己的 Windows 用户名，再复制到对应配置中。\r\n\r\n---\r\n\r\n## 4. 为什么还要确认 `tools.sessions.visibility = all`
 
 这个设置会影响 session 工具可见性，对多 agent 协同很重要。
 

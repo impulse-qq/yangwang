@@ -62,15 +62,15 @@ Most multi-agent frameworks let AI agents talk freely, producing opaque results 
 
 ```
 You (Emperor) → Crown Prince (Triage) → Planning Dept → Review Dept → Dispatch Dept → 6 Ministries → Report Back
-   皇上              太子               中书省          门下省         尚书省           六部          回奏
+   团长              副团长               策划部          监察部         调度部           各小队          回报
 ```
 
 This isn't a cute metaphor. It's **real separation of powers** for AI:
 
-- **Crown Prince (太子)** triages messages — casual chat gets auto-replied, real commands become tasks
-- **Planning (中书省)** breaks your command into actionable sub-tasks
-- **Review (门下省)** audits the plan — can reject and force re-planning
-- **Dispatch (尚书省)** assigns approved tasks to specialist ministries
+- **Crown Prince (副团长)** triages messages — casual chat gets auto-replied, real commands become tasks
+- **Planning (策划部)** breaks your command into actionable sub-tasks
+- **Review (监察部)** audits the plan — can reject and force re-planning
+- **Dispatch (调度部)** assigns approved tasks to specialist ministries
 - **7 Ministries** execute in parallel, each with distinct expertise
 - **Data sanitization** auto-strips file paths, metadata, and junk from task titles
 - Everything flows through a **real-time dashboard** you can monitor and intervene
@@ -102,7 +102,7 @@ This isn't a cute metaphor. It's **real separation of powers** for AI:
 
 CrewAI and AutoGen agents work in a **"done, ship it"** mode — no one checks output quality. It's like a company with no QA department where engineers push code straight to production.
 
-Edict's **Review Department (门下省)** exists specifically for this:
+Edict's **Review Department (监察部)** exists specifically for this:
 
 - 📋 **Audit plan quality** — Is the Planning Department's decomposition complete and sound?
 - 🚫 **Veto subpar output** — Not a warning. A hard reject that forces re-planning.
@@ -119,7 +119,7 @@ This is why Edict produces reliable results on complex tasks: there's a mandator
 ## ✨ Features
 
 ### 🏛️ Twelve-Department Agent Architecture
-- **Crown Prince** (太子) message triage — auto-reply casual chat, create tasks for real commands
+- **Crown Prince** (副团长) message triage — auto-reply casual chat, create tasks for real commands
 - **Three Departments** (Planning · Review · Dispatch) for governance
 - **Seven Ministries** (Finance · Docs · Engineering · Compliance · Infrastructure · HR + Briefing) for execution
 - Strict permission matrix — who can message whom is enforced
@@ -257,32 +257,32 @@ bash edict.sh stop     # Stop
                            └─────────────────┬─────────────────┘
                                              │ Issue edict
                            ┌─────────────────▼─────────────────┐
-                           │     👑 Crown Prince (太子)          │
+                           │     👑 Crown Prince (副团长)          │
                            │   Triage: chat → reply / cmd → task │
                            └─────────────────┬─────────────────┘
                                              │ Forward edict
                            ┌─────────────────▼─────────────────┐
-                           │      📜 Planning Dept (中书省)      │
+                           │      📜 Planning Dept (策划部)      │
                            │     Receive → Plan → Decompose      │
                            └─────────────────┬─────────────────┘
                                              │ Submit for review
                            ┌─────────────────▼─────────────────┐
-                           │       🔍 Review Dept (门下省)       │
+                           │       🔍 Review Dept (监察部)       │
                            │     Audit → Approve / Reject 🚫     │
                            └─────────────────┬─────────────────┘
                                              │ Approved ✅
                            ┌─────────────────▼─────────────────┐
-                           │      📮 Dispatch Dept (尚书省)      │
+                           │      📮 Dispatch Dept (调度部)      │
                            │   Assign → Coordinate → Collect     │
                            └───┬──────┬──────┬──────┬──────┬───┘
                                │      │      │      │      │
                          ┌─────▼┐ ┌───▼───┐ ┌▼─────┐ ┌───▼─┐ ┌▼─────┐
                          │💰 Fin.│ │📝 Docs│ │⚔️ Eng.│ │⚖️ Law│ │🔧 Ops│
-                         │ 户部  │ │ 礼部  │ │ 兵部  │ │ 刑部 │ │ 工部  │
+                         │ 财务小队  │ │ 书记小队  │ │ 战斗小队  │ │ 审判小队 │ │ 建设小队  │
                          └──────┘ └──────┘ └──────┘ └─────┘ └──────┘
                                                                ┌──────┐
                                                                │📋 HR  │
-                                                               │ 吏部  │
+                                                               │ 人事小队  │
                                                                └──────┘
 ```
 
@@ -290,17 +290,17 @@ bash edict.sh stop     # Stop
 
 | Dept | Agent ID | Role | Expertise |
 |------|----------|------|-----------|
-| 👑 **Crown Prince** | `taizi` | Triage, summarize | Chat detection, intent extraction |
-| 📜 **Planning** | `zhongshu` | Receive, plan, decompose | Requirements, architecture |
-| 🔍 **Review** | `menxia` | Audit, gatekeep, veto | Quality, risk, standards |
-| 📮 **Dispatch** | `shangshu` | Assign, coordinate, collect | Scheduling, tracking |
-| 💰 **Finance** | `hubu` | Data, resources, accounting | Data processing, reports |
-| 📝 **Documentation** | `libu` | Docs, standards, reports | Tech writing, API docs |
-| ⚔️ **Engineering** | `bingbu` | Code, algorithms, checks | Development, code review |
-| ⚖️ **Compliance** | `xingbu` | Security, compliance, audit | Security scanning |
-| 🔧 **Infrastructure** | `gongbu` | CI/CD, deploy, tooling | Docker, pipelines |
-| 📋 **HR** | `libu_hr` | Agent management, training | Registration, permissions |
-| 🌅 **Briefing** | `zaochao` | Daily briefing, news | Scheduled reports, summaries |
+| 👑 **Crown Prince** | `vice` | Triage, summarize | Chat detection, intent extraction |
+| 📜 **Planning** | `strategy` | Receive, plan, decompose | Requirements, architecture |
+| 🔍 **Review** | `review` | Audit, gatekeep, veto | Quality, risk, standards |
+| 📮 **Dispatch** | `dispatch` | Assign, coordinate, collect | Scheduling, tracking |
+| 💰 **Finance** | `finance` | Data, resources, accounting | Data processing, reports |
+| 📝 **Documentation** | `scribe` | Docs, standards, reports | Tech writing, API docs |
+| ⚔️ **Engineering** | `combat` | Code, algorithms, checks | Development, code review |
+| ⚖️ **Compliance** | `audit` | Security, compliance, audit | Security scanning |
+| 🔧 **Infrastructure** | `build` | CI/CD, deploy, tooling | Docker, pipelines |
+| 📋 **HR** | `hr` | Agent management, training | Registration, permissions |
+| 🌅 **Briefing** | `intel` | Daily briefing, news | Scheduled reports, summaries |
 
 ### Permission Matrix
 
@@ -327,14 +327,14 @@ Emperor → Prince Triage → Planning → Review → Assigned → Executing →
 ```
 edict/
 ├── agents/                     # 12 agent personality templates (SOUL.md)
-│   ├── taizi/                  #   Crown Prince (triage)
-│   ├── zhongshu/               #   Planning Dept
-│   ├── menxia/                 #   Review Dept
-│   ├── shangshu/               #   Dispatch Dept
-│   ├── hubu/ libu/ bingbu/     #   Finance / Docs / Engineering
-│   ├── xingbu/ gongbu/         #   Compliance / Infrastructure
-│   ├── libu_hr/                #   HR Dept
-│   └── zaochao/                #   Morning Briefing
+│   ├── vice/                  #   Crown Prince (triage)
+│   ├── strategy/               #   Planning Dept
+│   ├── review/                 #   Review Dept
+│   ├── dispatch/               #   Dispatch Dept
+│   ├── finance/ scribe/ combat/     #   Finance / Docs / Engineering
+│   ├── audit/ build/         #   Compliance / Infrastructure
+│   ├── hr/                #   HR Dept
+│   └── intel/                #   Morning Briefing
 ├── dashboard/
 │   ├── dashboard.html          # Dashboard (single file, zero deps, works out of the box)
 │   ├── dist/                   # Pre-built React frontend (included in Docker image)

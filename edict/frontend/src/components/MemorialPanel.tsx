@@ -14,7 +14,7 @@ export default function MemorialPanel() {
 
   const exportMemorial = (t: Task) => {
     const fl = t.flow_log || [];
-    let md = `# 📜 奏折 · ${t.title}\n\n`;
+    let md = `# 📜 战报 · ${t.title}\n\n`;
     md += `- **任务编号**: ${t.id}\n`;
     md += `- **状态**: ${t.state}\n`;
     md += `- **负责部门**: ${t.org}\n`;
@@ -30,7 +30,7 @@ export default function MemorialPanel() {
     }
     if (t.output && t.output !== '-') md += `## 产出物\n\n\`${t.output}\`\n`;
     navigator.clipboard.writeText(md).then(
-      () => toast('✅ 奏折已复制为 Markdown', 'ok'),
+      () => toast('✅ 战报已复制为 Markdown', 'ok'),
       () => toast('复制失败', 'err')
     );
   };
@@ -58,11 +58,11 @@ export default function MemorialPanel() {
       {/* List */}
       <div className="mem-list">
         {!mems.length ? (
-          <div className="mem-empty">暂无奏折 — 任务完成后自动生成</div>
+          <div className="mem-empty">暂无战报 — 任务完成后自动生成</div>
         ) : (
           mems.map((t) => {
             const fl = t.flow_log || [];
-            const depts = [...new Set(fl.map((f) => f.from).concat(fl.map((f) => f.to)).filter((x) => x && x !== '皇上'))];
+            const depts = [...new Set(fl.map((f) => f.from).concat(fl.map((f) => f.to)).filter((x) => x && x !== '团长'))];
             const firstAt = fl.length ? (fl[0].at || '').substring(0, 16).replace('T', ' ') : '';
             const lastAt = fl.length ? (fl[fl.length - 1].at || '').substring(0, 16).replace('T', ' ') : '';
             const stIcon = t.state === 'Done' ? '✅' : '🚫';
@@ -112,7 +112,7 @@ function MemorialDetailModal({
   const fl = t.flow_log || [];
   const st = t.state || 'Unknown';
   const stIcon = st === 'Done' ? '✅' : st === 'Cancelled' ? '🚫' : '🔄';
-  const depts = [...new Set(fl.map((f) => f.from).concat(fl.map((f) => f.to)).filter((x) => x && x !== '皇上'))];
+  const depts = [...new Set(fl.map((f) => f.from).concat(fl.map((f) => f.to)).filter((x) => x && x !== '团长'))];
 
   // Reconstruct phases
   const originLog: FlowEntry[] = [];
@@ -121,10 +121,10 @@ function MemorialDetailModal({
   const execLog: FlowEntry[] = [];
   const resultLog: FlowEntry[] = [];
   for (const f of fl) {
-    if (f.from === '皇上') originLog.push(f);
-    else if (f.to === '中书省' || f.from === '中书省') planLog.push(f);
-    else if (f.to === '门下省' || f.from === '门下省') reviewLog.push(f);
-    else if (f.remark && (f.remark.includes('完成') || f.remark.includes('回奏'))) resultLog.push(f);
+    if (f.from === '团长') originLog.push(f);
+    else if (f.to === '策划部' || f.from === '策划部') planLog.push(f);
+    else if (f.to === '监察部' || f.from === '监察部') reviewLog.push(f);
+    else if (f.remark && (f.remark.includes('完成') || f.remark.includes('回报'))) resultLog.push(f);
     else execLog.push(f);
   }
 
@@ -177,11 +177,11 @@ function MemorialDetailModal({
             </div>
           )}
 
-          {renderPhase('圣旨原文', '👑', originLog)}
+          {renderPhase('任务原文', '👑', originLog)}
           {renderPhase('中书规划', '📋', planLog)}
-          {renderPhase('门下审议', '🔍', reviewLog)}
-          {renderPhase('六部执行', '⚔️', execLog)}
-          {renderPhase('汇总回奏', '📨', resultLog)}
+          {renderPhase('监察审核', '🔍', reviewLog)}
+          {renderPhase('小队执行', '⚔️', execLog)}
+          {renderPhase('汇总回报', '📨', resultLog)}
 
           {t.output && t.output !== '-' && (
             <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--line)' }}>
@@ -192,7 +192,7 @@ function MemorialDetailModal({
 
           <div style={{ display: 'flex', gap: 8, marginTop: 16, justifyContent: 'flex-end' }}>
             <button className="btn btn-g" onClick={() => onExport(t)} style={{ fontSize: 12, padding: '6px 16px' }}>
-              📋 复制奏折
+              📋 复制战报
             </button>
           </div>
         </div>

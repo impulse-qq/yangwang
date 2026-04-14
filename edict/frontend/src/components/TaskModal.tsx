@@ -11,23 +11,23 @@ import type {
 } from '../api';
 
 const AGENT_LABELS: Record<string, string> = {
-  main: '太子',
-  zhongshu: '中书省',
-  menxia: '门下省',
-  shangshu: '尚书省',
-  libu: '礼部',
-  hubu: '户部',
-  bingbu: '兵部',
-  xingbu: '刑部',
-  gongbu: '工部',
-  libu_hr: '吏部',
-  zaochao: '钦天监',
+  main: '副团长',
+  strategy: '策划部',
+  review: '监察部',
+  dispatch: '调度部',
+  scribe: '书记小队',
+  finance: '财务小队',
+  combat: '战斗小队',
+  audit: '审判小队',
+  build: '建设小队',
+  hr: '人事小队',
+  intel: '情报部',
 };
 
 const NEXT_LABELS: Record<string, string> = {
-  Taizi: '中书省起草',
-  Zhongshu: '门下省审议',
-  Menxia: '尚书省派发',
+  Vice: '策划部起草',
+  Strategy: '监察部审议',
+  AuditReview: '调度部派发',
   Assigned: '开始执行',
   Doing: '进入审查',
   Review: '完成',
@@ -142,7 +142,7 @@ export default function TaskModal() {
   };
 
   const doReview = async (action: string) => {
-    const labels: Record<string, string> = { approve: '准奏', reject: '封驳' };
+    const labels: Record<string, string> = { approve: '批准', reject: '驳回' };
     const comment = prompt(`${labels[action]} ${task.id}\n\n请输入批注（可留空）：`);
     if (comment === null) return;
     try {
@@ -275,13 +275,13 @@ export default function TaskModal() {
             {canResume && (
               <button className="btn-action btn-resume" onClick={() => doTaskAction('resume', '恢复执行')}>▶️ 恢复执行</button>
             )}
-            {['Review', 'Menxia'].includes(task.state) && (
+            {['Review', 'Review'].includes(task.state) && (
               <>
-                <button className="btn-action" style={{ background: '#2ecc8a22', color: '#2ecc8a', border: '1px solid #2ecc8a44' }} onClick={() => doReview('approve')}>✅ 准奏</button>
-                <button className="btn-action" style={{ background: '#ff527022', color: '#ff5270', border: '1px solid #ff527044' }} onClick={() => doReview('reject')}>🚫 封驳</button>
+                <button className="btn-action" style={{ background: '#2ecc8a22', color: '#2ecc8a', border: '1px solid #2ecc8a44' }} onClick={() => doReview('approve')}>✅ 批准</button>
+                <button className="btn-action" style={{ background: '#ff527022', color: '#ff5270', border: '1px solid #ff527044' }} onClick={() => doReview('reject')}>🚫 驳回</button>
               </>
             )}
-            {['Pending', 'Taizi', 'Zhongshu', 'Menxia', 'Assigned', 'Doing', 'Review', 'Next'].includes(task.state) && (
+            {['Pending', 'Vice', 'Strategy', 'Review', 'Assigned', 'Doing', 'Review', 'Next'].includes(task.state) && (
               <button className="btn-action" style={{ background: '#7c5cfc18', color: '#7c5cfc', border: '1px solid #7c5cfc44' }} onClick={doAdvance}>⏩ 推进到下一步</button>
             )}
           </div>
@@ -289,7 +289,7 @@ export default function TaskModal() {
           {/* Scheduler Section */}
           <div className="sched-section">
             <div className="sched-head">
-              <span className="sched-title">🧭 太子调度</span>
+              <span className="sched-title">🧭 副团长调度</span>
               <span className="sched-status">
                 {sched ? `${sched.enabled === false ? '已禁用' : '运行中'} · 阈值 ${sched.stallThresholdSec || 180}s` : '加载中...'}
               </span>
@@ -297,7 +297,7 @@ export default function TaskModal() {
             <div className="sched-grid">
               <div className="sched-kpi"><div className="k">停滞时长</div><div className="v">{fmtStalled(stalledSec)}</div></div>
               <div className="sched-kpi"><div className="k">重试次数</div><div className="v">{sched?.retryCount || 0}</div></div>
-              <div className="sched-kpi"><div className="k">升级级别</div><div className="v">{!sched?.escalationLevel ? '无' : sched.escalationLevel === 1 ? '门下省' : '尚书省'}</div></div>
+              <div className="sched-kpi"><div className="k">升级级别</div><div className="v">{!sched?.escalationLevel ? '无' : sched.escalationLevel === 1 ? '监察部' : '调度部'}</div></div>
               <div className="sched-kpi"><div className="k">派发状态</div><div className="v">{sched?.lastDispatchStatus || 'idle'}</div></div>
             </div>
             {sched && (
@@ -464,9 +464,9 @@ function LiveActivitySection({
   const phaseDurations = data.phaseDurations || [];
   const maxDur = Math.max(...phaseDurations.map((p) => p.durationSec || 1), 1);
   const phaseColors: Record<string, string> = {
-    '皇上': '#eab308', '太子': '#f97316', '中书省': '#3b82f6', '门下省': '#8b5cf6',
-    '尚书省': '#10b981', '六部': '#06b6d4', '礼部': '#ec4899', '户部': '#f59e0b',
-    '兵部': '#ef4444', '刑部': '#6366f1', '工部': '#14b8a6', '吏部': '#d946ef',
+    '团长': '#eab308', '副团长': '#f97316', '策划部': '#3b82f6', '监察部': '#8b5cf6',
+    '调度部': '#10b981', '各小队': '#06b6d4', '书记小队': '#ec4899', '财务小队': '#f59e0b',
+    '战斗小队': '#ef4444', '审判小队': '#6366f1', '建设小队': '#14b8a6', '人事小队': '#d946ef',
   };
 
   // Todos summary

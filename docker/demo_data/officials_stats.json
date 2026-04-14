@@ -2,11 +2,11 @@
   "generatedAt": "2026-02-24 22:13:06",
   "officials": [
     {
-      "id": "zhongshu",
-      "label": "中书省",
-      "role": "中书令",
+      "id": "strategy",
+      "label": "策划部",
+      "role": "策划部长",
       "emoji": "📜",
-      "rank": "正一品",
+      "rank": "S级",
       "model": "anthropic/claude-sonnet-4-6",
       "model_short": "claude-sonnet-4-6",
       "sessions": 1,
@@ -30,17 +30,17 @@
       "participated_edicts": [
         {
           "id": "JJC-20260224-014",
-          "title": "A计划：三省六部 GitHub 爆款项目打造",
+          "title": "A计划：核心部各小队 GitHub 爆款项目打造",
           "state": "Doing"
         },
         {
           "id": "JJC-20260224-013",
           "title": "电芯循环数据清洗小模型方案",
-          "state": "Zhongshu"
+          "state": "Strategy"
         },
         {
           "id": "JJC-20260224-001",
-          "title": "每日早朝简报系统（7点图文新闻）",
+          "title": "每日晨报简报系统（7点图文新闻）",
           "state": "Done"
         },
         {
@@ -60,7 +60,7 @@
         },
         {
           "id": "JJC-20260223-011",
-          "title": "三省六部制开源 GitHub 项目",
+          "title": "核心部各小队制开源 GitHub 项目",
           "state": "Done"
         },
         {
@@ -73,11 +73,11 @@
       "merit_rank": 1
     },
     {
-      "id": "shangshu",
-      "label": "尚书省",
-      "role": "尚书令",
+      "id": "dispatch",
+      "label": "调度部",
+      "role": "调度部长",
       "emoji": "📮",
-      "rank": "正一品",
+      "rank": "S级",
       "model": "anthropic/claude-sonnet-4-6",
       "model_short": "claude-sonnet-4-6",
       "sessions": 6,
@@ -101,12 +101,12 @@
       "participated_edicts": [
         {
           "id": "JJC-20260224-014",
-          "title": "A计划：三省六部 GitHub 爆款项目打造",
+          "title": "A计划：核心部各小队 GitHub 爆款项目打造",
           "state": "Doing"
         },
         {
           "id": "JJC-20260224-001",
-          "title": "每日早朝简报系统（7点图文新闻）",
+          "title": "每日晨报简报系统（7点图文新闻）",
           "state": "Done"
         },
         {
@@ -134,11 +134,11 @@
       "merit_rank": 2
     },
     {
-      "id": "menxia",
-      "label": "门下省",
-      "role": "侍中",
+      "id": "review",
+      "label": "监察部",
+      "role": "监察部长",
       "emoji": "🔍",
-      "rank": "正一品",
+      "rank": "S级",
       "model": "anthropic/claude-sonnet-4-6",
       "model_short": "claude-sonnet-4-6",
       "sessions": 0,
@@ -162,7 +162,7 @@
       "participated_edicts": [
         {
           "id": "JJC-20260224-001",
-          "title": "每日早朝简报系统（7点图文新闻）",
+          "title": "每日晨报简报系统（7点图文新闻）",
           "state": "Done"
         },
         {
@@ -190,11 +190,11 @@
       "merit_rank": 3
     },
     {
-      "id": "bingbu",
-      "label": "兵部",
-      "role": "兵部尚书",
+      "id": "combat",
+      "label": "战斗小队",
+      "role": "战斗小队队长",
       "emoji": "⚔️",
-      "rank": "正二品",
+      "rank": "A级",
       "model": "anthropic/claude-sonnet-4-6",
       "model_short": "claude-sonnet-4-6",
       "sessions": 1,
@@ -226,11 +226,11 @@
       "merit_rank": 4
     },
     {
-      "id": "gongbu",
-      "label": "工部",
-      "role": "工部尚书",
+      "id": "build",
+      "label": "建设小队",
+      "role": "建设小队队长",
       "emoji": "🔧",
-      "rank": "正二品",
+      "rank": "A级",
       "model": "anthropic/claude-sonnet-4-6",
       "model_short": "claude-sonnet-4-6",
       "sessions": 1,
@@ -254,7 +254,7 @@
       "participated_edicts": [
         {
           "id": "JJC-20260224-001",
-          "title": "每日早朝简报系统（7点图文新闻）",
+          "title": "每日晨报简报系统（7点图文新闻）",
           "state": "Done"
         },
         {
@@ -274,7 +274,7 @@
         },
         {
           "id": "JJC-20260223-011",
-          "title": "三省六部制开源 GitHub 项目",
+          "title": "核心部各小队制开源 GitHub 项目",
           "state": "Done"
         }
       ],
@@ -282,11 +282,11 @@
       "merit_rank": 5
     },
     {
-      "id": "libu",
-      "label": "礼部",
-      "role": "礼部尚书",
+      "id": "scribe",
+      "label": "书记小队",
+      "role": "书记小队队长",
       "emoji": "📝",
-      "rank": "正二品",
+      "rank": "A级",
       "model": "anthropic/claude-sonnet-4-6",
       "model_short": "claude-sonnet-4-6",
       "sessions": 1,
@@ -310,7 +310,7 @@
       "participated_edicts": [
         {
           "id": "JJC-20260223-011",
-          "title": "三省六部制开源 GitHub 项目",
+          "title": "核心部各小队制开源 GitHub 项目",
           "state": "Done"
         },
         {
@@ -323,11 +323,11 @@
       "merit_rank": 6
     },
     {
-      "id": "hubu",
-      "label": "户部",
-      "role": "户部尚书",
+      "id": "finance",
+      "label": "财务小队",
+      "role": "财务小队队长",
       "emoji": "💰",
-      "rank": "正二品",
+      "rank": "A级",
       "model": "anthropic/claude-sonnet-4-6",
       "model_short": "claude-sonnet-4-6",
       "sessions": 0,
@@ -359,11 +359,11 @@
       "merit_rank": 7
     },
     {
-      "id": "xingbu",
-      "label": "刑部",
-      "role": "刑部尚书",
+      "id": "audit",
+      "label": "审判小队",
+      "role": "审判小队队长",
       "emoji": "⚖️",
-      "rank": "正二品",
+      "rank": "A级",
       "model": "anthropic/claude-sonnet-4-6",
       "model_short": "claude-sonnet-4-6",
       "sessions": 0,
@@ -396,5 +396,5 @@
     "cost_cny": 24.39,
     "tasks_done": 10
   },
-  "top_official": "中书省"
+  "top_official": "策划部"
 }

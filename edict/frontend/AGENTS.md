@@ -2,7 +2,7 @@
 
 ## OVERVIEW
 
-React 18 dashboard for 三省六部 Kanban. 13 components, Zustand store, HTTP 5s polling.
+React 18 dashboard for 核心部各小队 Kanban. 13 components, Zustand store, HTTP 5s polling.
 
 ## KEY FILES
 

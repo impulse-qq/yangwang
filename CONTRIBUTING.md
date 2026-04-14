@@ -1,7 +1,7 @@
 ∏# 🤝 参与贡献
 
 <p align="center">
-  <strong>三省六部欢迎各路英雄好汉 ⚔️</strong><br>
+  <strong>核心部各小队欢迎各路英雄好汉 ⚔️</strong><br>
   <sub>无论是修一个 typo 还是设计一个新的 Agent 角色，我们都万分感谢</sub>
 </p>
 
@@ -23,7 +23,7 @@
 
 使用 [Feature Request](.github/ISSUE_TEMPLATE/feature_request.md) 模板。
 
-我们推荐用"旨意"的格式来描述你的需求 —— 就像给皇上写奏折一样 😄
+我们推荐用"委托"的格式来描述你的需求 —— 就像给团长写战报一样 😄
 
 ### 🔧 提交 Pull Request
 
@@ -130,7 +130,7 @@ ci:       👷 CI/CD 配置
 
 示例：
 ```
-feat: 添加奏折导出为 PDF 功能
+feat: 添加战报导出为 PDF 功能
 fix: 修复模型切换后 Gateway 未重启的问题
 docs: 更新 README 截图
 ```
@@ -231,5 +231,5 @@ curl -s http://localhost:7891/api/live-status | python3 -m json.tool | head -20
 ---
 
 <p align="center">
-  <sub>感谢每一位贡献者，你们是三省六部的基石 ⚔️</sub>
+  <sub>感谢每一位贡献者，你们是核心部各小队的基石 ⚔️</sub>
 </p>

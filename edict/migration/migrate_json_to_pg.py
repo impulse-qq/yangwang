@@ -35,9 +35,9 @@ log = logging.getLogger("migrate")
 
 # 旧版状态 → Edict TaskState
 STATE_MAP = {
-    "Taizi": TaskState.Taizi,
-    "Zhongshu": TaskState.Zhongshu,
-    "Menxia": TaskState.Menxia,
+    "Vice": TaskState.Vice,
+    "Strategy": TaskState.Strategy,
+    "Review": TaskState.AuditReview,
     "Assigned": TaskState.Assigned,
     "Next": TaskState.Next,
     "Doing": TaskState.Doing,
@@ -47,15 +47,15 @@ STATE_MAP = {
     "Cancelled": TaskState.Cancelled,
     "Pending": TaskState.Pending,
     # Fallbacks
-    "Inbox": TaskState.Taizi,
-    "": TaskState.Taizi,
+    "Inbox": TaskState.Vice,
+    "": TaskState.Vice,
 }
 
 
 def parse_old_task(old: dict) -> dict:
     """将旧版 task JSON 转换为 Edict Task 参数。"""
-    state_str = old.get("state", "Taizi")
-    state = STATE_MAP.get(state_str, TaskState.Taizi)
+    state_str = old.get("state", "Vice")
+    state = STATE_MAP.get(state_str, TaskState.Vice)
 
     legacy_id = old.get("id", "")
     title = old.get("title", "未命名任务")
@@ -74,7 +74,7 @@ def parse_old_task(old: dict) -> dict:
         "priority": "中",
         "state": state,
         "assignee_org": old.get("org", None),
-        "creator": old.get("official", "emperor"),
+        "creator": old.get("official", "master"),
         "tags": [legacy_id] if legacy_id else [],
         "org": old.get("org", Task.org_for_state(state)),
         "official": old.get("official", ""),

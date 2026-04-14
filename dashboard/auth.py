@@ -1,4 +1,4 @@
-"""三省六部 · 简易 JWT 认证模块（零外部依赖）。
+"""核心部各小队 · 简易 JWT 认证模块（零外部依赖）。
 
 使用 Python stdlib 实现：
 - 密码哈希: hashlib.pbkdf2_hmac (SHA-256, 100k iterations)

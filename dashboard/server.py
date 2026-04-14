@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-三省六部 · 看板本地 API 服务器
+核心部各小队 · 看板本地 API 服务器
 Port: 7891 (可通过 --port 修改)
 
 Endpoints:
@@ -168,11 +168,11 @@ def handle_task_action(task_id, action, reason):
 
     if action == 'stop':
         task['state'] = 'Blocked'
-        task['block'] = reason or '皇上叫停'
+        task['block'] = reason or '团长叫停'
         task['now'] = f'⏸️ 已暂停：{reason}'
     elif action == 'cancel':
         task['state'] = 'Cancelled'
-        task['block'] = reason or '皇上取消'
+        task['block'] = reason or '团长取消'
         task['now'] = f'🚫 已取消：{reason}'
     elif action == 'resume':
         # Resume to previous active state or Doing
@@ -185,7 +185,7 @@ def handle_task_action(task_id, action, reason):
 
     task.setdefault('flow_log', []).append({
         'at': now_iso(),
-        'from': '皇上',
+        'from': '团长',
         'to': task.get('org', ''),
         'remark': f'{"⏸️ 叫停" if action == "stop" else "🚫 取消" if action == "cancel" else "▶️ 恢复"}：{reason}'
     })
@@ -193,7 +193,7 @@ def handle_task_action(task_id, action, reason):
     if action == 'resume':
         _scheduler_mark_progress(task, f'恢复到 {task.get("state", "Doing")}')
     else:
-        _scheduler_add_flow(task, f'皇上{action}：{reason or "无"}')
+        _scheduler_add_flow(task, f'团长{action}：{reason or "无"}')
 
     task['updatedAt'] = now_iso()
 
@@ -215,7 +215,7 @@ def handle_archive_task(task_id, archived, archive_all_done=False):
                 t['archivedAt'] = now_iso()
                 count += 1
         save_tasks(tasks)
-        return {'ok': True, 'message': f'{count} 道旨意已归档', 'count': count}
+        return {'ok': True, 'message': f'{count} 道委托已归档', 'count': count}
     task = next((t for t in tasks if t.get('id') == task_id), None)
     if not task:
         return {'ok': False, 'error': f'任务 {task_id} 不存在'}
@@ -611,7 +611,7 @@ def push_to_feishu():
     push_notification()
 
 
-# 旨意标题最低要求
+# 委托标题最低要求
 _MIN_TITLE_LEN = 6
 _JUNK_TITLES = {
     '?', '？', '好', '好的', '是', '否', '不', '不是', '对', '了解', '收到',
@@ -620,23 +620,23 @@ _JUNK_TITLES = {
 }
 
 
-def handle_create_task(title, org='中书省', official='中书令', priority='normal', template_id='', params=None, target_dept=''):
-    """从看板创建新任务（圣旨模板下旨）。"""
+def handle_create_task(title, org='策划部', official='策划部长', priority='normal', template_id='', params=None, target_dept=''):
+    """从看板创建新任务（任务模板发布委托）。"""
     if not title or not title.strip():
         return {'ok': False, 'error': '任务标题不能为空'}
     title = title.strip()
     # 剥离 Conversation info 元数据
     title = re.split(r'\n*Conversation info\s*\(', title, maxsplit=1)[0].strip()
     title = re.split(r'\n*```', title, maxsplit=1)[0].strip()
-    # 清理常见前缀: "传旨:" "下旨:" 等
-    title = re.sub(r'^(传旨|下旨)[：:\uff1a]\s*', '', title)
+    # 清理常见前缀: "传达委托:" "发布委托:" 等
+    title = re.sub(r'^(传达委托|发布委托)[：:\uff1a]\s*', '', title)
     if len(title) > 100:
         title = title[:100] + '…'
-    # 标题质量校验：防止闲聊被误建为旨意
+    # 标题质量校验：防止闲聊被误建为委托
     if len(title) < _MIN_TITLE_LEN:
-        return {'ok': False, 'error': f'标题过短（{len(title)}<{_MIN_TITLE_LEN}字），不像是旨意'}
+        return {'ok': False, 'error': f'标题过短（{len(title)}<{_MIN_TITLE_LEN}字），不像是委托'}
     if title.lower() in _JUNK_TITLES:
-        return {'ok': False, 'error': f'「{title}」不是有效旨意，请输入具体工作指令'}
+        return {'ok': False, 'error': f'「{title}」不是有效委托，请输入具体工作指令'}
     # 生成 task id: JJC-YYYYMMDD-NNN
     today = datetime.datetime.now().strftime('%Y%m%d')
     tasks = load_tasks()
@@ -646,16 +646,16 @@ def handle_create_task(title, org='中书省', official='中书令', priority='n
         nums = [int(tid.split('-')[-1]) for tid in today_ids if tid.split('-')[-1].isdigit()]
         seq = max(nums) + 1 if nums else 1
     task_id = f'JJC-{today}-{seq:03d}'
-    # 正确流程起点：皇上 -> 太子分拣
-    # target_dept 记录模板建议的最终执行部门（仅供尚书省派发参考）
-    initial_org = '太子'
+    # 正确流程起点：团长 -> 副团长分拣
+    # target_dept 记录模板建议的最终执行部门（仅供调度部派发参考）
+    initial_org = '副团长'
     new_task = {
         'id': task_id,
         'title': title,
         'official': official,
         'org': initial_org,
-        'state': 'Taizi',
-        'now': '等待太子接旨分拣',
+        'state': 'Vice',
+        'now': '等待副团长接令分拣',
         'eta': '-',
         'block': '无',
         'output': '',
@@ -665,9 +665,9 @@ def handle_create_task(title, org='中书省', official='中书令', priority='n
         'templateParams': params or {},
         'flow_log': [{
             'at': now_iso(),
-            'from': '皇上',
+            'from': '团长',
             'to': initial_org,
-            'remark': f'下旨：{title}'
+            'remark': f'发布委托：{title}'
         }],
         'updatedAt': now_iso(),
     }
@@ -682,47 +682,47 @@ def handle_create_task(title, org='中书省', official='中书令', priority='n
     save_tasks(tasks)
     log.info(f'创建任务: {task_id} | {title[:40]}')
 
-    dispatch_for_state(task_id, new_task, 'Taizi', trigger='imperial-edict')
+    dispatch_for_state(task_id, new_task, 'Vice', trigger='imperial-edict')
 
-    return {'ok': True, 'taskId': task_id, 'message': f'旨意 {task_id} 已下达，正在派发给太子'}
+    return {'ok': True, 'taskId': task_id, 'message': f'委托 {task_id} 已下达，正在派发给副团长'}
 
 
 def handle_review_action(task_id, action, comment=''):
-    """门下省御批：准奏/封驳。"""
+    """监察部审批：批准/驳回。"""
     tasks = load_tasks()
     task = next((t for t in tasks if t.get('id') == task_id), None)
     if not task:
         return {'ok': False, 'error': f'任务 {task_id} 不存在'}
-    if task.get('state') not in ('Review', 'Menxia'):
-        return {'ok': False, 'error': f'任务 {task_id} 当前状态为 {task.get("state")}，无法御批'}
+    if task.get('state') not in ('Review', 'Review'):
+        return {'ok': False, 'error': f'任务 {task_id} 当前状态为 {task.get("state")}，无法审批'}
 
     _ensure_scheduler(task)
     _scheduler_snapshot(task, f'review-before-{action}')
 
     if action == 'approve':
-        if task['state'] == 'Menxia':
+        if task['state'] == 'Review':
             task['state'] = 'Assigned'
-            task['now'] = '门下省准奏，移交尚书省派发'
-            remark = f'✅ 准奏：{comment or "门下省审议通过"}'
-            to_dept = '尚书省'
+            task['now'] = '监察部批准，移交调度部派发'
+            remark = f'✅ 批准：{comment or "监察部审议通过"}'
+            to_dept = '调度部'
         else:  # Review
             task['state'] = 'Done'
-            task['now'] = '御批通过，任务完成'
-            remark = f'✅ 御批准奏：{comment or "审查通过"}'
-            to_dept = '皇上'
+            task['now'] = '审批通过，任务完成'
+            remark = f'✅ 审批批准：{comment or "审查通过"}'
+            to_dept = '团长'
     elif action == 'reject':
         round_num = (task.get('review_round') or 0) + 1
         task['review_round'] = round_num
-        task['state'] = 'Zhongshu'
-        task['now'] = f'封驳退回中书省修订（第{round_num}轮）'
-        remark = f'🚫 封驳：{comment or "需要修改"}'
-        to_dept = '中书省'
+        task['state'] = 'Strategy'
+        task['now'] = f'驳回退回策划部修订（第{round_num}轮）'
+        remark = f'🚫 驳回：{comment or "需要修改"}'
+        to_dept = '策划部'
     else:
         return {'ok': False, 'error': f'未知操作: {action}'}
 
     task.setdefault('flow_log', []).append({
         'at': now_iso(),
-        'from': '门下省' if task.get('state') != 'Done' else '皇上',
+        'from': '监察部' if task.get('state') != 'Done' else '团长',
         'to': to_dept,
         'remark': remark
     })
@@ -735,7 +735,7 @@ def handle_review_action(task_id, action, comment=''):
     if new_state not in ('Done',):
         dispatch_for_state(task_id, task, new_state)
 
-    label = '已准奏' if action == 'approve' else '已封驳'
+    label = '已批准' if action == 'approve' else '已驳回'
     dispatched = ' (已自动派发 Agent)' if new_state != 'Done' else ''
     return {'ok': True, 'message': f'{task_id} {label}{dispatched}'}
 
@@ -743,17 +743,17 @@ def handle_review_action(task_id, action, comment=''):
 # ══ Agent 在线状态检测 ══
 
 _AGENT_DEPTS = [
-    {'id':'taizi',   'label':'太子',  'emoji':'🤴', 'role':'太子',     'rank':'储君'},
-    {'id':'zhongshu','label':'中书省','emoji':'📜', 'role':'中书令',   'rank':'正一品'},
-    {'id':'menxia',  'label':'门下省','emoji':'🔍', 'role':'侍中',     'rank':'正一品'},
-    {'id':'shangshu','label':'尚书省','emoji':'📮', 'role':'尚书令',   'rank':'正一品'},
-    {'id':'hubu',    'label':'户部',  'emoji':'💰', 'role':'户部尚书', 'rank':'正二品'},
-    {'id':'libu',    'label':'礼部',  'emoji':'📝', 'role':'礼部尚书', 'rank':'正二品'},
-    {'id':'bingbu',  'label':'兵部',  'emoji':'⚔️', 'role':'兵部尚书', 'rank':'正二品'},
-    {'id':'xingbu',  'label':'刑部',  'emoji':'⚖️', 'role':'刑部尚书', 'rank':'正二品'},
-    {'id':'gongbu',  'label':'工部',  'emoji':'🔧', 'role':'工部尚书', 'rank':'正二品'},
-    {'id':'libu_hr', 'label':'吏部',  'emoji':'👔', 'role':'吏部尚书', 'rank':'正二品'},
-    {'id':'zaochao', 'label':'钦天监','emoji':'📰', 'role':'朝报官',   'rank':'正三品'},
+    {'id':'vice',   'label':'副团长',  'emoji':'🤴', 'role':'副团长',     'rank':'副团长'},
+    {'id':'strategy','label':'策划部','emoji':'📜', 'role':'策划部长',   'rank':'S级'},
+    {'id':'review',  'label':'监察部','emoji':'🔍', 'role':'监察部长',     'rank':'S级'},
+    {'id':'dispatch','label':'调度部','emoji':'📮', 'role':'调度部长',   'rank':'S级'},
+    {'id':'finance',    'label':'财务小队',  'emoji':'💰', 'role':'财务小队队长', 'rank':'A级'},
+    {'id':'scribe',    'label':'书记小队',  'emoji':'📝', 'role':'书记小队队长', 'rank':'A级'},
+    {'id':'combat',  'label':'战斗小队',  'emoji':'⚔️', 'role':'战斗小队队长', 'rank':'A级'},
+    {'id':'audit',  'label':'审判小队',  'emoji':'⚖️', 'role':'审判小队队长', 'rank':'A级'},
+    {'id':'build',  'label':'建设小队',  'emoji':'🔧', 'role':'建设小队队长', 'rank':'A级'},
+    {'id':'hr', 'label':'人事小队',  'emoji':'👔', 'role':'人事小队队长', 'rank':'A级'},
+    {'id':'intel', 'label':'情报部','emoji':'📰', 'role':'情报官',   'rank':'B级'},
 ]
 
 
@@ -960,19 +960,19 @@ def wake_agent(agent_id, message=''):
 
 # 状态 → agent_id 映射
 _STATE_AGENT_MAP = {
-    'Taizi': 'taizi',
-    'Zhongshu': 'zhongshu',
-    'Menxia': 'menxia',
-    'Assigned': 'shangshu',
-    'Doing': None,         # 六部，需从 org 推断
-    'Review': 'shangshu',
+    'Vice': 'vice',
+    'Strategy': 'strategy',
+    'Review': 'review',
+    'Assigned': 'dispatch',
+    'Doing': None,         # 各小队，需从 org 推断
+    'Review': 'dispatch',
     'Next': None,          # 待执行，从 org 推断
-    'Pending': 'zhongshu', # 待处理，默认中书省
+    'Pending': 'strategy', # 待处理，默认策划部
 }
 _ORG_AGENT_MAP = {
-    '礼部': 'libu', '户部': 'hubu', '兵部': 'bingbu',
-    '刑部': 'xingbu', '工部': 'gongbu', '吏部': 'libu_hr',
-    '中书省': 'zhongshu', '门下省': 'menxia', '尚书省': 'shangshu',
+    '书记小队': 'scribe', '财务小队': 'finance', '战斗小队': 'combat',
+    '审判小队': 'audit', '建设小队': 'build', '人事小队': 'hr',
+    '策划部': 'strategy', '监察部': 'review', '调度部': 'dispatch',
 }
 
 _TERMINAL_STATES = {'Done', 'Cancelled'}
@@ -1018,7 +1018,7 @@ def _ensure_scheduler(task):
 def _scheduler_add_flow(task, remark, to=''):
     task.setdefault('flow_log', []).append({
         'at': now_iso(),
-        'from': '太子调度',
+        'from': '副团长调度',
         'to': to or task.get('org', ''),
         'remark': f'🧭 {remark}'
     })
@@ -1093,12 +1093,12 @@ def handle_scheduler_retry(task_id, reason=''):
     sched = _ensure_scheduler(task)
     sched['retryCount'] = int(sched.get('retryCount') or 0) + 1
     sched['lastRetryAt'] = now_iso()
-    sched['lastDispatchTrigger'] = 'taizi-retry'
+    sched['lastDispatchTrigger'] = 'vice-retry'
     _scheduler_add_flow(task, f'触发重试第{sched["retryCount"]}次：{reason or "超时未推进"}')
     task['updatedAt'] = now_iso()
     save_tasks(tasks)
 
-    dispatch_for_state(task_id, task, state, trigger='taizi-retry')
+    dispatch_for_state(task_id, task, state, trigger='vice-retry')
     return {'ok': True, 'message': f'{task_id} 已触发重试派发', 'retryCount': sched['retryCount']}
 
 
@@ -1114,8 +1114,8 @@ def handle_scheduler_escalate(task_id, reason=''):
     sched = _ensure_scheduler(task)
     current_level = int(sched.get('escalationLevel') or 0)
     next_level = min(current_level + 1, 2)
-    target = 'menxia' if next_level == 1 else 'shangshu'
-    target_label = '门下省' if next_level == 1 else '尚书省'
+    target = 'review' if next_level == 1 else 'dispatch'
+    target_label = '监察部' if next_level == 1 else '调度部'
 
     sched['escalationLevel'] = next_level
     sched['lastEscalatedAt'] = now_iso()
@@ -1124,7 +1124,7 @@ def handle_scheduler_escalate(task_id, reason=''):
     save_tasks(tasks)
 
     msg = (
-        f'🧭 太子调度升级通知\n'
+        f'🧭 副团长调度升级通知\n'
         f'任务ID: {task_id}\n'
         f'当前状态: {state}\n'
         f'停滞处理: 请你介入协调推进\n'
@@ -1150,7 +1150,7 @@ def handle_scheduler_rollback(task_id, reason=''):
     old_state = task.get('state', '')
     task['state'] = snap_state
     task['org'] = snapshot.get('org', task.get('org', ''))
-    task['now'] = f'↩️ 太子调度自动回滚：{reason or "恢复到上个稳定节点"}'
+    task['now'] = f'↩️ 副团长调度自动回滚：{reason or "恢复到上个稳定节点"}'
     task['block'] = '无'
     sched['retryCount'] = 0
     sched['escalationLevel'] = 0
@@ -1161,7 +1161,7 @@ def handle_scheduler_rollback(task_id, reason=''):
     save_tasks(tasks)
 
     if snap_state not in _TERMINAL_STATES:
-        dispatch_for_state(task_id, task, snap_state, trigger='taizi-rollback')
+        dispatch_for_state(task_id, task, snap_state, trigger='vice-rollback')
 
     return {'ok': True, 'message': f'{task_id} 已回滚到 {snap_state}'}
 
@@ -1204,7 +1204,7 @@ def handle_scheduler_scan(threshold_sec=600):
         if retry_count < max_retry:
             sched['retryCount'] = retry_count + 1
             sched['lastRetryAt'] = now_iso()
-            sched['lastDispatchTrigger'] = 'taizi-scan-retry'
+            sched['lastDispatchTrigger'] = 'vice-scan-retry'
             _scheduler_add_flow(task, f'停滞{stalled_sec}秒，触发自动重试第{sched["retryCount"]}次')
             pending_retries.append((task_id, state))
             actions.append({'taskId': task_id, 'action': 'retry', 'stalledSec': stalled_sec})
@@ -1213,8 +1213,8 @@ def handle_scheduler_scan(threshold_sec=600):
 
         if level < 2:
             next_level = level + 1
-            target = 'menxia' if next_level == 1 else 'shangshu'
-            target_label = '门下省' if next_level == 1 else '尚书省'
+            target = 'review' if next_level == 1 else 'dispatch'
+            target_label = '监察部' if next_level == 1 else '调度部'
             sched['escalationLevel'] = next_level
             sched['lastEscalatedAt'] = now_iso()
             _scheduler_add_flow(task, f'停滞{stalled_sec}秒，升级至{target_label}协调', to=target_label)
@@ -1242,7 +1242,7 @@ def handle_scheduler_scan(threshold_sec=600):
                 old_state = state
                 task['state'] = snap_state
                 task['org'] = snapshot.get('org', task.get('org', ''))
-                task['now'] = '↩️ 太子调度自动回滚到稳定节点'
+                task['now'] = '↩️ 副团长调度自动回滚到稳定节点'
                 task['block'] = '无'
                 sched['retryCount'] = 0
                 sched['escalationLevel'] = 0
@@ -1260,11 +1260,11 @@ def handle_scheduler_scan(threshold_sec=600):
     for task_id, state in pending_retries:
         retry_task = next((t for t in tasks if t.get('id') == task_id), None)
         if retry_task:
-            dispatch_for_state(task_id, retry_task, state, trigger='taizi-scan-retry')
+            dispatch_for_state(task_id, retry_task, state, trigger='vice-scan-retry')
 
     for task_id, state, target, target_label, stalled_sec in pending_escalates:
         msg = (
-            f'🧭 太子调度升级通知\n'
+            f'🧭 副团长调度升级通知\n'
             f'任务ID: {task_id}\n'
             f'当前状态: {state}\n'
             f'已停滞: {stalled_sec} 秒\n'
@@ -1276,7 +1276,7 @@ def handle_scheduler_scan(threshold_sec=600):
     for task_id, state in pending_rollbacks:
         rollback_task = next((t for t in tasks if t.get('id') == task_id), None)
         if rollback_task and state not in _TERMINAL_STATES:
-            dispatch_for_state(task_id, rollback_task, state, trigger='taizi-auto-rollback')
+            dispatch_for_state(task_id, rollback_task, state, trigger='vice-auto-rollback')
 
     return {
         'ok': True,
@@ -1310,7 +1310,7 @@ def _startup_recover_queued_dispatches():
 
 
 def handle_repair_flow_order():
-    """修复历史任务中首条流转为“皇上->中书省”的错序问题。"""
+    """修复历史任务中首条流转为“团长->策划部”的错序问题。"""
     tasks = load_tasks()
     fixed = 0
     fixed_ids = []
@@ -1324,18 +1324,18 @@ def handle_repair_flow_order():
             continue
 
         first = flow_log[0]
-        if first.get('from') != '皇上' or first.get('to') != '中书省':
+        if first.get('from') != '团长' or first.get('to') != '策划部':
             continue
 
-        first['to'] = '太子'
+        first['to'] = '副团长'
         remark = first.get('remark', '')
-        if isinstance(remark, str) and remark.startswith('下旨：'):
+        if isinstance(remark, str) and remark.startswith('发布委托：'):
             first['remark'] = remark
 
-        if task.get('state') == 'Zhongshu' and task.get('org') == '中书省' and len(flow_log) == 1:
-            task['state'] = 'Taizi'
-            task['org'] = '太子'
-            task['now'] = '等待太子接旨分拣'
+        if task.get('state') == 'Strategy' and task.get('org') == '策划部' and len(flow_log) == 1:
+            task['state'] = 'Vice'
+            task['org'] = '副团长'
+            task['now'] = '等待副团长接令分拣'
 
         task['updatedAt'] = now_iso()
         fixed += 1
@@ -1982,18 +1982,18 @@ def get_task_activity(task_id):
 
 # 状态推进顺序（手动推进用）
 _STATE_FLOW = {
-    'Pending':  ('Taizi', '皇上', '太子', '待处理旨意转交太子分拣'),
-    'Taizi':    ('Zhongshu', '太子', '中书省', '太子分拣完毕，转中书省起草'),
-    'Zhongshu': ('Menxia', '中书省', '门下省', '中书省方案提交门下省审议'),
-    'Menxia':   ('Assigned', '门下省', '尚书省', '门下省准奏，转尚书省派发'),
-    'Assigned': ('Doing', '尚书省', '六部', '尚书省开始派发执行'),
-    'Next':     ('Doing', '尚书省', '六部', '待执行任务开始执行'),
-    'Doing':    ('Review', '六部', '尚书省', '各部完成，进入汇总'),
-    'Review':   ('Done', '尚书省', '太子', '全流程完成，回奏太子转报皇上'),
+    'Pending':  ('Vice', '团长', '副团长', '待处理委托转交副团长分拣'),
+    'Vice':    ('Strategy', '副团长', '策划部', '副团长分拣完毕，转策划部起草'),
+    'Strategy': ('Review', '策划部', '监察部', '策划部方案提交监察部审议'),
+    'Review':   ('Assigned', '监察部', '调度部', '监察部批准，转调度部派发'),
+    'Assigned': ('Doing', '调度部', '各小队', '调度部开始派发执行'),
+    'Next':     ('Doing', '调度部', '各小队', '待执行任务开始执行'),
+    'Doing':    ('Review', '各小队', '调度部', '各部完成，进入汇总'),
+    'Review':   ('Done', '调度部', '副团长', '全流程完成，回报副团长转报团长'),
 }
 _STATE_LABELS = {
-    'Pending': '待处理', 'Taizi': '太子', 'Zhongshu': '中书省', 'Menxia': '门下省',
-    'Assigned': '尚书省', 'Next': '待执行', 'Doing': '执行中', 'Review': '审查', 'Done': '完成',
+    'Pending': '待处理', 'Vice': '副团长', 'Strategy': '策划部', 'Review': '监察部',
+    'Assigned': '调度部', 'Next': '待执行', 'Doing': '执行中', 'Review': '审查', 'Done': '完成',
 }
 
 
@@ -2022,40 +2022,40 @@ def dispatch_for_state(task_id, task, new_state, trigger='state-transition'):
 
     # 根据 agent_id 构造针对性消息
     _msgs = {
-        'taizi': (
-            f'📜 皇上旨意需要你处理\n'
+        'vice': (
+            f'📜 团长委托需要你处理\n'
             f'任务ID: {task_id}\n'
-            f'旨意: {title}\n'
+            f'委托: {title}\n'
             f'⚠️ 看板已有此任务，请勿重复创建。直接用 kanban_update.py 更新状态。\n'
-            f'请立即转交中书省起草执行方案。'
+            f'请立即转交策划部起草执行方案。'
         ),
-        'zhongshu': (
-            f'📜 旨意已到中书省，请起草方案\n'
+        'strategy': (
+            f'📜 委托已到策划部，请起草方案\n'
             f'任务ID: {task_id}\n'
-            f'旨意: {title}\n'
+            f'委托: {title}\n'
             f'⚠️ 看板已有此任务记录，请勿重复创建。直接用 kanban_update.py state 更新状态。\n'
-            f'请立即起草执行方案，走完完整三省流程（中书起草→门下审议→尚书派发→六部执行）。'
+            f'请立即起草执行方案，走完完整核心部流程（策划起草→监察审核→调度派遣→小队执行）。'
         ),
-        'menxia': (
-            f'📋 中书省方案提交审议\n'
+        'review': (
+            f'📋 策划部方案提交审议\n'
             f'任务ID: {task_id}\n'
-            f'旨意: {title}\n'
+            f'委托: {title}\n'
             f'⚠️ 看板已有此任务，请勿重复创建。\n'
-            f'请审议中书省方案，给出准奏或封驳意见。'
+            f'请审议策划部方案，给出批准或驳回意见。'
         ),
-        'shangshu': (
-            f'📮 门下省已准奏，请派发执行\n'
+        'dispatch': (
+            f'📮 监察部已批准，请派发执行\n'
             f'任务ID: {task_id}\n'
-            f'旨意: {title}\n'
+            f'委托: {title}\n'
             f'{"建议派发部门: " + target_dept if target_dept else ""}\n'
             f'⚠️ 看板已有此任务，请勿重复创建。\n'
-            f'请分析方案并派发给六部执行。'
+            f'请分析方案并派发给小队执行。'
         ),
     }
     msg = _msgs.get(agent_id, (
         f'📌 请处理任务\n'
         f'任务ID: {task_id}\n'
-        f'旨意: {title}\n'
+        f'委托: {title}\n'
         f'⚠️ 看板已有此任务，请勿重复创建。直接用 kanban_update.py 更新状态。'
     ))
 
@@ -2580,7 +2580,7 @@ class Handler(BaseHTTPRequestHandler):
         if p == '/api/task-action':
             task_id = body.get('taskId', '').strip()
             action = body.get('action', '').strip()  # stop, cancel, resume
-            reason = body.get('reason', '').strip() or f'皇上从看板{action}'
+            reason = body.get('reason', '').strip() or f'团长从看板{action}'
             if not task_id or action not in ('stop', 'cancel', 'resume'):
                 self.send_json({'ok': False, 'error': 'taskId and action(stop/cancel/resume) required'}, 400)
                 return
@@ -2622,8 +2622,8 @@ class Handler(BaseHTTPRequestHandler):
 
         if p == '/api/create-task':
             title = body.get('title', '').strip()
-            org = body.get('org', '中书省').strip()
-            official = body.get('official', '中书令').strip()
+            org = body.get('org', '策划部').strip()
+            official = body.get('official', '策划部长').strip()
             priority = body.get('priority', 'normal').strip()
             template_id = body.get('templateId', '')
             params = body.get('params', {})
@@ -2751,7 +2751,7 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='三省六部看板服务器')
+    parser = argparse.ArgumentParser(description='核心部各小队看板服务器')
     parser.add_argument('--port', type=int, default=7891)
     parser.add_argument('--host', default='127.0.0.1')
     parser.add_argument('--cors', default=None, help='Allowed CORS origin (default: reflect request Origin header)')
@@ -2765,7 +2765,7 @@ def main():
     }
 
     server = HTTPServer((args.host, args.port), Handler)
-    log.info(f'三省六部看板启动 → http://{args.host}:{args.port}')
+    log.info(f'核心部各小队看板启动 → http://{args.host}:{args.port}')
     print(f'   按 Ctrl+C 停止')
 
     auth_init(DATA)

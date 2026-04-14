@@ -48,7 +48,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Edict 三省六部",
+    title="Edict 核心部各小队",
     description="事件驱动的 AI Agent 协作平台",
     version="2.0.0",
     lifespan=lifespan,
@@ -80,7 +80,7 @@ async def health():
 @app.get("/api")
 async def api_root():
     return {
-        "name": "Edict 三省六部 API",
+        "name": "Edict 核心部各小队 API",
         "version": "2.0.0",
         "endpoints": {
             "tasks": "/api/tasks",

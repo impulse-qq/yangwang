@@ -1,17 +1,17 @@
 {
   "agents": {
     "list": [
-      {"id": "taizi", "workspace": "/app/.openclaw/workspace-taizi", "subagents": {"allowAgents": ["zhongshu"]}},
-      {"id": "zhongshu", "workspace": "/app/.openclaw/workspace-zhongshu", "subagents": {"allowAgents": ["menxia", "shangshu"]}},
-      {"id": "menxia", "workspace": "/app/.openclaw/workspace-menxia", "subagents": {"allowAgents": ["shangshu", "zhongshu"]}},
-      {"id": "shangshu", "workspace": "/app/.openclaw/workspace-shangshu", "subagents": {"allowAgents": ["zhongshu", "menxia", "hubu", "libu", "bingbu", "xingbu", "gongbu", "libu_hr"]}},
-      {"id": "hubu", "workspace": "/app/.openclaw/workspace-hubu", "subagents": {"allowAgents": ["shangshu"]}},
-      {"id": "libu", "workspace": "/app/.openclaw/workspace-libu", "subagents": {"allowAgents": ["shangshu"]}},
-      {"id": "bingbu", "workspace": "/app/.openclaw/workspace-bingbu", "subagents": {"allowAgents": ["shangshu"]}},
-      {"id": "xingbu", "workspace": "/app/.openclaw/workspace-xingbu", "subagents": {"allowAgents": ["shangshu"]}},
-      {"id": "gongbu", "workspace": "/app/.openclaw/workspace-gongbu", "subagents": {"allowAgents": ["shangshu"]}},
-      {"id": "libu_hr", "workspace": "/app/.openclaw/workspace-libu_hr", "subagents": {"allowAgents": ["shangshu"]}},
-      {"id": "zaochao", "workspace": "/app/.openclaw/workspace-zaochao", "subagents": {"allowAgents": []}}
+      {"id": "vice", "workspace": "/app/.openclaw/workspace-vice", "subagents": {"allowAgents": ["strategy"]}},
+      {"id": "strategy", "workspace": "/app/.openclaw/workspace-strategy", "subagents": {"allowAgents": ["review", "dispatch"]}},
+      {"id": "review", "workspace": "/app/.openclaw/workspace-review", "subagents": {"allowAgents": ["dispatch", "strategy"]}},
+      {"id": "dispatch", "workspace": "/app/.openclaw/workspace-dispatch", "subagents": {"allowAgents": ["strategy", "review", "finance", "scribe", "combat", "audit", "build", "hr"]}},
+      {"id": "finance", "workspace": "/app/.openclaw/workspace-finance", "subagents": {"allowAgents": ["dispatch"]}},
+      {"id": "scribe", "workspace": "/app/.openclaw/workspace-scribe", "subagents": {"allowAgents": ["dispatch"]}},
+      {"id": "combat", "workspace": "/app/.openclaw/workspace-combat", "subagents": {"allowAgents": ["dispatch"]}},
+      {"id": "audit", "workspace": "/app/.openclaw/workspace-audit", "subagents": {"allowAgents": ["dispatch"]}},
+      {"id": "build", "workspace": "/app/.openclaw/workspace-build", "subagents": {"allowAgents": ["dispatch"]}},
+      {"id": "hr", "workspace": "/app/.openclaw/workspace-hr", "subagents": {"allowAgents": ["dispatch"]}},
+      {"id": "intel", "workspace": "/app/.openclaw/workspace-intel", "subagents": {"allowAgents": []}}
     ]
   }
 }

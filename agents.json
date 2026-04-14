@@ -1,99 +1,99 @@
 [
   {
-    "id": "taizi",
-    "name": "taizi",
-    "workspace": "C:\\Users\\<YOUR_USER>\\.openclaw\\workspace-taizi",
-    "agentDir": "C:\\Users\\<YOUR_USER>\\.openclaw\\agents\\taizi\\agent",
+    "id": "vice",
+    "name": "vice",
+    "workspace": "C:\\Users\\<YOUR_USER>\\.openclaw\\workspace-vice",
+    "agentDir": "C:\\Users\\<YOUR_USER>\\.openclaw\\agents\\vice\\agent",
     "subagents": {
-      "allowAgents": ["zhongshu"]
+      "allowAgents": ["strategy"]
     }
   },
   {
-    "id": "zhongshu",
-    "name": "zhongshu",
-    "workspace": "C:\\Users\\<YOUR_USER>\\.openclaw\\workspace-zhongshu",
-    "agentDir": "C:\\Users\\<YOUR_USER>\\.openclaw\\agents\\zhongshu\\agent",
+    "id": "strategy",
+    "name": "strategy",
+    "workspace": "C:\\Users\\<YOUR_USER>\\.openclaw\\workspace-strategy",
+    "agentDir": "C:\\Users\\<YOUR_USER>\\.openclaw\\agents\\strategy\\agent",
     "subagents": {
-      "allowAgents": ["menxia", "shangshu"]
+      "allowAgents": ["review", "dispatch"]
     }
   },
   {
-    "id": "menxia",
-    "name": "menxia",
-    "workspace": "C:\\Users\\<YOUR_USER>\\.openclaw\\workspace-menxia",
-    "agentDir": "C:\\Users\\<YOUR_USER>\\.openclaw\\agents\\menxia\\agent",
+    "id": "review",
+    "name": "review",
+    "workspace": "C:\\Users\\<YOUR_USER>\\.openclaw\\workspace-review",
+    "agentDir": "C:\\Users\\<YOUR_USER>\\.openclaw\\agents\\review\\agent",
     "subagents": {
-      "allowAgents": ["shangshu", "zhongshu"]
+      "allowAgents": ["dispatch", "strategy"]
     }
   },
   {
-    "id": "shangshu",
-    "name": "shangshu",
-    "workspace": "C:\\Users\\<YOUR_USER>\\.openclaw\\workspace-shangshu",
-    "agentDir": "C:\\Users\\<YOUR_USER>\\.openclaw\\agents\\shangshu\\agent",
+    "id": "dispatch",
+    "name": "dispatch",
+    "workspace": "C:\\Users\\<YOUR_USER>\\.openclaw\\workspace-dispatch",
+    "agentDir": "C:\\Users\\<YOUR_USER>\\.openclaw\\agents\\dispatch\\agent",
     "subagents": {
-      "allowAgents": ["zhongshu", "menxia", "hubu", "libu", "bingbu", "xingbu", "gongbu", "libu_hr"]
+      "allowAgents": ["strategy", "review", "finance", "scribe", "combat", "audit", "build", "hr"]
     }
   },
   {
-    "id": "hubu",
-    "name": "hubu",
-    "workspace": "C:\\Users\\<YOUR_USER>\\.openclaw\\workspace-hubu",
-    "agentDir": "C:\\Users\\<YOUR_USER>\\.openclaw\\agents\\hubu\\agent",
+    "id": "finance",
+    "name": "finance",
+    "workspace": "C:\\Users\\<YOUR_USER>\\.openclaw\\workspace-finance",
+    "agentDir": "C:\\Users\\<YOUR_USER>\\.openclaw\\agents\\finance\\agent",
     "subagents": {
-      "allowAgents": ["shangshu"]
+      "allowAgents": ["dispatch"]
     }
   },
   {
-    "id": "libu",
-    "name": "libu",
-    "workspace": "C:\\Users\\<YOUR_USER>\\.openclaw\\workspace-libu",
-    "agentDir": "C:\\Users\\<YOUR_USER>\\.openclaw\\agents\\libu\\agent",
+    "id": "scribe",
+    "name": "scribe",
+    "workspace": "C:\\Users\\<YOUR_USER>\\.openclaw\\workspace-scribe",
+    "agentDir": "C:\\Users\\<YOUR_USER>\\.openclaw\\agents\\scribe\\agent",
     "subagents": {
-      "allowAgents": ["shangshu"]
+      "allowAgents": ["dispatch"]
     }
   },
   {
-    "id": "bingbu",
-    "name": "bingbu",
-    "workspace": "C:\\Users\\<YOUR_USER>\\.openclaw\\workspace-bingbu",
-    "agentDir": "C:\\Users\\<YOUR_USER>\\.openclaw\\agents\\bingbu\\agent",
+    "id": "combat",
+    "name": "combat",
+    "workspace": "C:\\Users\\<YOUR_USER>\\.openclaw\\workspace-combat",
+    "agentDir": "C:\\Users\\<YOUR_USER>\\.openclaw\\agents\\combat\\agent",
     "subagents": {
-      "allowAgents": ["shangshu"]
+      "allowAgents": ["dispatch"]
     }
   },
   {
-    "id": "xingbu",
-    "name": "xingbu",
-    "workspace": "C:\\Users\\<YOUR_USER>\\.openclaw\\workspace-xingbu",
-    "agentDir": "C:\\Users\\<YOUR_USER>\\.openclaw\\agents\\xingbu\\agent",
+    "id": "audit",
+    "name": "audit",
+    "workspace": "C:\\Users\\<YOUR_USER>\\.openclaw\\workspace-audit",
+    "agentDir": "C:\\Users\\<YOUR_USER>\\.openclaw\\agents\\audit\\agent",
     "subagents": {
-      "allowAgents": ["shangshu"]
+      "allowAgents": ["dispatch"]
     }
   },
   {
-    "id": "gongbu",
-    "name": "gongbu",
-    "workspace": "C:\\Users\\<YOUR_USER>\\.openclaw\\workspace-gongbu",
-    "agentDir": "C:\\Users\\<YOUR_USER>\\.openclaw\\agents\\gongbu\\agent",
+    "id": "build",
+    "name": "build",
+    "workspace": "C:\\Users\\<YOUR_USER>\\.openclaw\\workspace-build",
+    "agentDir": "C:\\Users\\<YOUR_USER>\\.openclaw\\agents\\build\\agent",
     "subagents": {
-      "allowAgents": ["shangshu"]
+      "allowAgents": ["dispatch"]
     }
   },
   {
-    "id": "libu_hr",
-    "name": "libu_hr",
-    "workspace": "C:\\Users\\<YOUR_USER>\\.openclaw\\workspace-libu_hr",
-    "agentDir": "C:\\Users\\<YOUR_USER>\\.openclaw\\agents\\libu_hr\\agent",
+    "id": "hr",
+    "name": "hr",
+    "workspace": "C:\\Users\\<YOUR_USER>\\.openclaw\\workspace-hr",
+    "agentDir": "C:\\Users\\<YOUR_USER>\\.openclaw\\agents\\hr\\agent",
     "subagents": {
-      "allowAgents": ["shangshu"]
+      "allowAgents": ["dispatch"]
     }
   },
   {
-    "id": "zaochao",
-    "name": "zaochao",
-    "workspace": "C:\\Users\\<YOUR_USER>\\.openclaw\\workspace-zaochao",
-    "agentDir": "C:\\Users\\<YOUR_USER>\\.openclaw\\agents\\zaochao\\agent",
+    "id": "intel",
+    "name": "intel",
+    "workspace": "C:\\Users\\<YOUR_USER>\\.openclaw\\workspace-intel",
+    "agentDir": "C:\\Users\\<YOUR_USER>\\.openclaw\\agents\\intel\\agent",
     "subagents": {
       "allowAgents": []
     }

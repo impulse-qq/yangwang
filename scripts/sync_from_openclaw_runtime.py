@@ -43,20 +43,20 @@ def state_from_session(age_ms, aborted):
 
 def detect_official(agent_id):
     mapping = {
-        'main':    ('储君', '太子'),        # legacy id for taizi
-        'taizi':   ('储君', '太子'),
-        'zhongshu': ('中书令', '中书省'),
-        'menxia':  ('侍中', '门下省'),
-        'shangshu': ('尚书令', '尚书省'),
-        'hubu':    ('户部尚书', '户部'),
-        'libu':    ('礼部尚书', '礼部'),
-        'bingbu':  ('兵部尚书', '兵部'),
-        'xingbu':  ('刑部尚书', '刑部'),
-        'gongbu':  ('工部尚书', '工部'),
-        'libu_hr': ('吏部尚书', '吏部'),
-        'zaochao': ('钦天监', '钦天监'),
+        'main':    ('副团长', '副团长'),        # legacy id for vice
+        'vice':   ('副团长', '副团长'),
+        'strategy': ('策划部长', '策划部'),
+        'review':  ('监察部长', '监察部'),
+        'dispatch': ('调度部长', '调度部'),
+        'finance':    ('财务小队队长', '财务小队'),
+        'scribe':    ('书记小队队长', '书记小队'),
+        'combat':  ('战斗小队队长', '战斗小队'),
+        'audit':  ('审判小队队长', '审判小队'),
+        'build':  ('建设小队队长', '建设小队'),
+        'hr': ('人事小队队长', '人事小队'),
+        'intel': ('情报部', '情报部'),
     }
-    return mapping.get(agent_id, ('尚书令', '尚书省'))
+    return mapping.get(agent_id, ('调度部长', '调度部'))
 
 
 def load_activity(session_file, limit=12):
@@ -247,7 +247,7 @@ def main():
             except Exception:
                 pass
 
-        # merge manual parallel tasks (用于军机处并行看板展示)
+        # merge manual parallel tasks (用于公会大厅并行看板展示)
         manual_tasks_file = DATA / 'manual_parallel_tasks.json'
         if manual_tasks_file.exists():
             try:
@@ -303,7 +303,7 @@ def main():
         
         tasks = filtered_tasks
         
-        # ── 保留已有的 JJC-* 旨意任务（不覆盖皇上下旨记录）──
+        # ── 保留已有的 JJC-* 委托任务（不覆盖团长发布委托记录）──
         # JJC 任务的 now 字段由 Agent 自己通过 kanban_update.py progress 命令主动上报，
         # 不再从会话日志中被动抓取。这里只做合并，不做 activity 映射。
         existing_tasks_file = DATA / 'tasks_source.json'
@@ -312,7 +312,7 @@ def main():
                 existing = json.loads(existing_tasks_file.read_text())
                 jjc_existing = [t for t in existing if str(t.get('id', '')).startswith('JJC')]
                 
-                # 去掉 tasks 里已有的 JJC（以防重复），再把旨意放到最前面
+                # 去掉 tasks 里已有的 JJC（以防重复），再把委托放到最前面
                 tasks = [t for t in tasks if not str(t.get('id', '')).startswith('JJC')]
                 tasks = jjc_existing + tasks
             except Exception as e:

@@ -42,9 +42,9 @@ class TaskService:
         description: str = "",
         priority: str = "中",
         assignee_org: str | None = None,
-        creator: str = "emperor",
+        creator: str = "master",
         tags: list[str] | None = None,
-        initial_state: TaskState = TaskState.Taizi,
+        initial_state: TaskState = TaskState.Vice,
         meta: dict | None = None,
     ) -> Task:
         """创建任务，事件写入 outbox 表（同一事务原子提交）。"""

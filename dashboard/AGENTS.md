@@ -24,7 +24,7 @@ Embedded dashboard serving API + UI via pure Python stdlib (`http.server`). No b
 - **Embedded first**: Always update `dashboard.html` before React build
 - **No build step for embedded**: `server.py` + `dashboard.html` must work standalone
 - **API prefix**: All endpoints under `/api/`
-- **Chinese domain naming**: 旨意 (zhuyi/tasks), 奏折 (zouzhe/memorials), 圣旨 (shengzhi/edicts)
+- **Chinese domain naming**: 委托 (zhuyi/tasks), 战报 (zouzhe/memorials), 任务 (shengzhi/edicts)
 
 ---
 

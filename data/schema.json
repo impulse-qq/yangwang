@@ -1,24 +1,24 @@
 {
   "meta": {
-    "title": "军机处",
-    "ownerTitle": "皇上",
+    "title": "公会大厅",
+    "ownerTitle": "团长",
     "version": "v3"
   },
-  "states": ["Pending", "Taizi", "Zhongshu", "Menxia", "Assigned", "Next", "Doing", "Review", "Done", "Blocked", "Cancelled"],
+  "states": ["Pending", "Vice", "Strategy", "Review", "Assigned", "Next", "Doing", "Review", "Done", "Blocked", "Cancelled"],
   "stateFlow": "Pending → Taizi → Zhongshu → Menxia → Assigned → Doing → Review → Done",
   "terminalStates": ["Done", "Cancelled"],
   "roles": {
-    "taizi": "太子",
-    "zhongshu": "中书省",
-    "menxia": "门下省",
-    "shangshu": "尚书省",
-    "hubu": "户部",
-    "libu": "礼部",
-    "bingbu": "兵部",
-    "xingbu": "刑部",
-    "gongbu": "工部",
-    "libu_hr": "吏部",
-    "zaochao": "钦天监"
+    "vice": "副团长",
+    "strategy": "策划部",
+    "review": "监察部",
+    "dispatch": "调度部",
+    "finance": "财务小队",
+    "scribe": "书记小队",
+    "combat": "战斗小队",
+    "audit": "审判小队",
+    "build": "建设小队",
+    "hr": "人事小队",
+    "intel": "情报部"
   },
   "taskFields": [
     "id",

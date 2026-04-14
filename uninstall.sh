@@ -1,6 +1,6 @@
 #!/bin/bash
 # ══════════════════════════════════════════════════════════════
-# 三省六部 · OpenClaw Multi-Agent System 一键卸载脚本
+# 核心部各小队 · OpenClaw Multi-Agent System 一键卸载脚本
 # ══════════════════════════════════════════════════════════════
 set -e
 
@@ -13,7 +13,7 @@ RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BLUE='\033[0;34m'; NC
 banner() {
   echo ""
   echo -e "${BLUE}╔══════════════════════════════════════════╗${NC}"
-  echo -e "${BLUE}║  🏛️  三省六部 · 卸载向导                  ║${NC}"
+  echo -e "${BLUE}║  🏛️  核心部各小队 · 卸载向导                  ║${NC}"
   echo -e "${BLUE}╚══════════════════════════════════════════╝${NC}"
   echo ""
 }
@@ -30,7 +30,7 @@ check_env() {
   fi
 
   echo ""
-  echo -e "${YELLOW}确定要卸载「三省六部」系统并清理相关 Agent 数据吗？${NC}"
+  echo -e "${YELLOW}确定要卸载「核心部各小队」系统并清理相关 Agent 数据吗？${NC}"
   read -p "(y/N) " -r
   echo
   if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -56,7 +56,7 @@ stop_services() {
 
 # ── Step 2: 清理 OpenClaw 注册配置 ──────────────────────────────
 unregister_agents() {
-  info "从 OpenClaw 移除三省六部 Agents 注册信息..."
+  info "从 OpenClaw 移除核心部各小队 Agents 注册信息..."
 
   if [ ! -f "$OC_CFG" ]; then
     warn "未找到 openclaw.json，跳过配置清理"
@@ -81,9 +81,9 @@ except Exception as e:
     exit(1)
 
 AGENTS_TO_REMOVE = {
-    "taizi", "zhongshu", "menxia", "shangshu",
-    "hubu", "libu", "bingbu", "xingbu", "gongbu",
-    "libu_hr", "zaochao"
+    "vice", "strategy", "review", "dispatch",
+    "finance", "scribe", "combat", "audit", "build",
+    "hr", "intel"
 }
 
 agents_list = cfg.get('agents', {}).get('list', [])
@@ -103,7 +103,7 @@ PYEOF
 remove_workspaces() {
   info "清除 Agent Workspace 目录..."
 
-  AGENTS=(taizi zhongshu menxia shangshu hubu libu bingbu xingbu gongbu libu_hr zaochao)
+  AGENTS=(vice strategy review dispatch finance scribe combat audit build hr intel)
   removed=0
   for agent in "${AGENTS[@]}"; do
     ws="$OC_HOME/workspace-$agent"
@@ -160,6 +160,6 @@ restart_gateway
 
 echo ""
 echo -e "${GREEN}╔══════════════════════════════════════════════════╗${NC}"
-echo -e "${GREEN}║  ✅  三省六部卸载完成！                          ║${NC}"
+echo -e "${GREEN}║  ✅  核心部各小队卸载完成！                          ║${NC}"
 echo -e "${GREEN}╚══════════════════════════════════════════════════╝${NC}"
 echo ""

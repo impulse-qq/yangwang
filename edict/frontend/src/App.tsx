@@ -51,14 +51,14 @@ export default function App() {
       {/* ── Header ── */}
       <div className="hdr">
         <div>
-          <div className="logo">三省六部 · 总控台</div>
+          <div className="logo">核心部各小队 · 总控台</div>
           <div className="sub-text">OpenClaw Sansheng-Liubu Dashboard</div>
         </div>
         <div className="hdr-r">
           <span className={`chip ${syncOk ? 'ok' : syncOk === false ? 'err' : ''}`}>
             {syncOk ? '✅ 同步正常' : syncOk === false ? '❌ 服务器未启动' : '⏳ 连接中…'}
           </span>
-          <span className="chip">{activeEdicts.length} 道旨意</span>
+          <span className="chip">{activeEdicts.length} 道委托</span>
           <button className="btn-refresh" onClick={() => loadAll()}>
             ⟳ 刷新
           </button>

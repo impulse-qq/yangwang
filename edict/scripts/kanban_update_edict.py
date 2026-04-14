@@ -6,9 +6,9 @@
 如果 API 不可用，降级回写 JSON 文件（过渡期保障）。
 
 用法（与旧版 100% 兼容）:
-  python3 kanban_update.py create JJC-20260223-012 "任务标题" Zhongshu 中书省 中书令
-  python3 kanban_update.py state JJC-20260223-012 Menxia "规划方案已提交门下省"
-  python3 kanban_update.py flow JJC-20260223-012 "中书省" "门下省" "规划方案提交审核"
+  python3 kanban_update.py create JJC-20260223-012 "任务标题" Strategy 策划部 策划部长
+  python3 kanban_update.py state JJC-20260223-012 AuditReview "规划方案已提交监察部"
+  python3 kanban_update.py flow JJC-20260223-012 "策划部" "监察部" "规划方案提交审核"
   python3 kanban_update.py done JJC-20260223-012 "/path/to/output" "任务完成摘要"
   python3 kanban_update.py todo JJC-20260223-012 1 "实现API接口" in-progress
   python3 kanban_update.py progress JJC-20260223-012 "正在分析需求" "1.调研✅|2.文档🔄|3.原型"
@@ -40,13 +40,13 @@ _JUNK_TITLES = {
 }
 
 STATE_ORG_MAP = {
-    'Taizi': '太子', 'Zhongshu': '中书省', 'Menxia': '门下省', 'Assigned': '尚书省',
-    'Doing': '执行中', 'Review': '尚书省', 'Done': '完成', 'Blocked': '阻塞',
+    'Vice': '副团长', 'Strategy': '策划部', 'Review': '监察部', 'Assigned': '调度部',
+    'Doing': '执行中', 'Review': '调度部', 'Done': '完成', 'Blocked': '阻塞',
 }
 
 # State → Edict TaskState value 映射
 _STATE_TO_EDICT = {
-    'Taizi': 'taizi', 'Zhongshu': 'zhongshu', 'Menxia': 'menxia',
+    'Vice': 'vice', 'Strategy': 'strategy', 'Review': 'review',
     'Assigned': 'assigned', 'Next': 'next', 'Doing': 'doing',
     'Review': 'review', 'Done': 'done', 'Blocked': 'blocked',
     'Cancelled': 'cancelled', 'Pending': 'pending',
@@ -59,7 +59,7 @@ def _sanitize_text(raw, max_len=80):
     t = re.split(r'\n*```', t, maxsplit=1)[0].strip()
     t = re.sub(r'[/\\.~][A-Za-z0-9_\-./]+(?:\.(?:py|js|ts|json|md|sh|yaml|yml|txt|csv|html|css|log))?', '', t)
     t = re.sub(r'https?://\S+', '', t)
-    t = re.sub(r'^(传旨|下旨)([（(][^)）]*[)）])?[：:\uff1a]\s*', '', t)
+    t = re.sub(r'^(传达委托|发布委托)([（(][^)）]*[)）])?[：:\uff1a]\s*', '', t)
     t = re.sub(r'(message_id|session_id|chat_id|open_id|user_id|tenant_key)\s*[:=]\s*\S+', '', t)
     t = re.sub(r'\s+', ' ', t).strip()
     if len(t) > max_len:
@@ -78,9 +78,9 @@ def _sanitize_remark(raw):
 def _is_valid_task_title(title):
     t = (title or '').strip()
     if len(t) < _MIN_TITLE_LEN:
-        return False, f'标题过短（{len(t)}<{_MIN_TITLE_LEN}字），疑似非旨意'
+        return False, f'标题过短（{len(t)}<{_MIN_TITLE_LEN}字），疑似非委托'
     if t.lower() in _JUNK_TITLES:
-        return False, f'标题 "{t}" 不是有效旨意'
+        return False, f'标题 "{t}" 不是有效委托'
     if re.fullmatch(r'[\s?？!！.。,，…·\-—~]+', t):
         return False, '标题只有标点符号'
     if re.match(r'^[/\\~.]', t) or re.search(r'/[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+', t):
@@ -199,7 +199,7 @@ def cmd_create(task_id, title, state, org, official, remark=None):
         edict_state = _STATE_TO_EDICT.get(state, state.lower())
         result = _api_post('/api/tasks', {
             'title': title,
-            'description': remark or f'下旨：{title}',
+            'description': remark or f'发布委托：{title}',
             'priority': '中',
             'assignee_org': org,
             'creator': official,

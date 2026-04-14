@@ -1,6 +1,6 @@
 # SCRIPTS · Edict
 
-CLI tools and workflow orchestration for 三省六部 system.
+CLI tools and workflow orchestration for 核心部各小队 system.
 
 ---
 

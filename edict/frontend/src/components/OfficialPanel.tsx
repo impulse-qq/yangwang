@@ -50,7 +50,7 @@ export default function OfficialPanel() {
         </div>
         <div className="kpi">
           <div className="kpi-v" style={{ color: '#f5c842' }}>{totals.tasks_done || 0}</div>
-          <div className="kpi-l">累计完成旨意</div>
+          <div className="kpi-l">累计完成委托</div>
         </div>
         <div className="kpi">
           <div className="kpi-v" style={{ color: (totals.cost_cny || 0) > 20 ? 'var(--warn)' : 'var(--ok)' }}>
@@ -154,7 +154,7 @@ function OfficialDetail({
         <div style={{ display: 'flex', gap: 16 }}>
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--ok)' }}>{o.tasks_done}</div>
-            <div style={{ fontSize: 10, color: 'var(--muted)' }}>完成旨意</div>
+            <div style={{ fontSize: 10, color: 'var(--muted)' }}>完成委托</div>
           </div>
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--warn)' }}>{o.tasks_active}</div>
@@ -197,9 +197,9 @@ function OfficialDetail({
 
       {/* Participated Edicts */}
       <div>
-        <div className="sec-title">参与旨意（{edicts.length} 道）</div>
+        <div className="sec-title">参与委托（{edicts.length} 道）</div>
         {edicts.length === 0 ? (
-          <div style={{ fontSize: 12, color: 'var(--muted)', padding: '8px 0' }}>暂无旨意记录</div>
+          <div style={{ fontSize: 12, color: 'var(--muted)', padding: '8px 0' }}>暂无委托记录</div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             {edicts.map((e) => (

@@ -1,4 +1,4 @@
-# EDICT BACKEND · 尚书省
+# EDICT BACKEND · 调度部
 
 ## OVERVIEW
 
@@ -9,7 +9,7 @@ Async services layer for task orchestration via SQLAlchemy + Redis Streams. Impl
 ### Models (`app/models/`)
 | File | Role |
 |------|------|
-| `task.py` | State machine: 皇上→太子分拣→中书规划→...→已完成 |
+| `task.py` | State machine: 团长→副团长分拣→中书规划→...→已完成 |
 | `audit.py` | Immutable audit log for all state transitions |
 | `outbox.py` |.Transactional outbox for exactly-once delivery |
 

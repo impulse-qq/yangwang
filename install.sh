@@ -1,6 +1,6 @@
 #!/bin/bash
 # ══════════════════════════════════════════════════════════════
-# 三省六部 · OpenClaw Multi-Agent System 一键安装脚本
+# 核心部各小队 · OpenClaw Multi-Agent System 一键安装脚本
 # ══════════════════════════════════════════════════════════════
 set -e
 
@@ -13,7 +13,7 @@ RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BLUE='\033[0;34m'; NC
 banner() {
   echo ""
   echo -e "${BLUE}╔══════════════════════════════════════════╗${NC}"
-  echo -e "${BLUE}║  🏛️  三省六部 · OpenClaw Multi-Agent    ║${NC}"
+  echo -e "${BLUE}║  🏛️  核心部各小队 · OpenClaw Multi-Agent    ║${NC}"
   echo -e "${BLUE}║       安装向导                            ║${NC}"
   echo -e "${BLUE}╚══════════════════════════════════════════╝${NC}"
   echo ""
@@ -92,7 +92,7 @@ backup_existing() {
 create_workspaces() {
   info "创建 Agent Workspace..."
   
-  AGENTS=(taizi zhongshu menxia shangshu hubu libu bingbu xingbu gongbu libu_hr zaochao)
+  AGENTS=(vice strategy review dispatch finance scribe combat audit build hr intel)
   for agent in "${AGENTS[@]}"; do
     ws="$OC_HOME/workspace-$agent"
     mkdir -p "$ws/skills"
@@ -112,9 +112,9 @@ create_workspaces() {
     cat > "$OC_HOME/workspace-$agent/AGENTS.md" << 'AGENTS_EOF'
 # AGENTS.md · 工作协议
 
-1. 接到任务先回复"已接旨"。
+1. 接到任务先回复"已接令"。
 2. 输出必须包含：任务ID、结果、证据/文件路径、阻塞项。
-3. 需要协作时，回复尚书省请求转派，不跨部直连。
+3. 需要协作时，回复调度部请求转派，不跨部直连。
 4. 涉及删除/外发动作必须明确标注并等待批准。
 AGENTS_EOF
   done
@@ -122,7 +122,7 @@ AGENTS_EOF
 
 # ── Step 2: 注册 Agents ─────────────────────────────────────
 register_agents() {
-  info "注册三省六部 Agents..."
+  info "注册核心部各小队 Agents..."
 
   # 备份配置
   cp "$OC_CFG" "$OC_CFG.bak.sansheng-$(date +%Y%m%d-%H%M%S)"
@@ -136,17 +136,17 @@ cfg_path = oc_home / 'openclaw.json'
 cfg = json.loads(cfg_path.read_text())
 
 AGENTS = [
-  {"id": "taizi",    "subagents": {"allowAgents": ["zhongshu"]}},
-    {"id": "zhongshu", "subagents": {"allowAgents": ["menxia", "shangshu"]}},
-    {"id": "menxia",   "subagents": {"allowAgents": ["shangshu", "zhongshu"]}},
-  {"id": "shangshu", "subagents": {"allowAgents": ["zhongshu", "menxia", "hubu", "libu", "bingbu", "xingbu", "gongbu", "libu_hr"]}},
-    {"id": "hubu",     "subagents": {"allowAgents": ["shangshu"]}},
-    {"id": "libu",     "subagents": {"allowAgents": ["shangshu"]}},
-    {"id": "bingbu",   "subagents": {"allowAgents": ["shangshu"]}},
-    {"id": "xingbu",   "subagents": {"allowAgents": ["shangshu"]}},
-    {"id": "gongbu",   "subagents": {"allowAgents": ["shangshu"]}},
-  {"id": "libu_hr",  "subagents": {"allowAgents": ["shangshu"]}},
-  {"id": "zaochao",  "subagents": {"allowAgents": []}},
+  {"id": "vice",    "subagents": {"allowAgents": ["strategy"]}},
+    {"id": "strategy", "subagents": {"allowAgents": ["review", "dispatch"]}},
+    {"id": "review",   "subagents": {"allowAgents": ["dispatch", "strategy"]}},
+  {"id": "dispatch", "subagents": {"allowAgents": ["strategy", "review", "finance", "scribe", "combat", "audit", "build", "hr"]}},
+    {"id": "finance",     "subagents": {"allowAgents": ["dispatch"]}},
+    {"id": "scribe",     "subagents": {"allowAgents": ["dispatch"]}},
+    {"id": "combat",   "subagents": {"allowAgents": ["dispatch"]}},
+    {"id": "audit",   "subagents": {"allowAgents": ["dispatch"]}},
+    {"id": "build",   "subagents": {"allowAgents": ["dispatch"]}},
+  {"id": "hr",  "subagents": {"allowAgents": ["dispatch"]}},
+  {"id": "intel",  "subagents": {"allowAgents": []}},
 ]
 
 agents_cfg = cfg.setdefault('agents', {})
@@ -208,20 +208,20 @@ tasks = [
     {
         "id": "JJC-DEMO-001",
         "title": "🎉 系统初始化完成",
-        "official": "工部尚书",
-        "org": "工部",
+        "official": "建设小队队长",
+        "org": "建设小队",
         "state": "Done",
-        "now": "三省六部系统已就绪",
+        "now": "核心部各小队系统已就绪",
         "eta": "-",
         "block": "无",
         "output": "",
         "ac": "系统正常运行",
         "flow_log": [
-            {"at": "2024-01-01T00:00:00Z", "from": "皇上", "to": "中书省", "remark": "下旨初始化三省六部系统"},
-            {"at": "2024-01-01T00:01:00Z", "from": "中书省", "to": "门下省", "remark": "规划方案提交审核"},
-            {"at": "2024-01-01T00:02:00Z", "from": "门下省", "to": "尚书省", "remark": "✅ 准奏"},
-            {"at": "2024-01-01T00:03:00Z", "from": "尚书省", "to": "工部", "remark": "派发：系统初始化"},
-            {"at": "2024-01-01T00:04:00Z", "from": "工部", "to": "尚书省", "remark": "✅ 完成"},
+            {"at": "2024-01-01T00:00:00Z", "from": "团长", "to": "策划部", "remark": "发布委托初始化核心部各小队系统"},
+            {"at": "2024-01-01T00:01:00Z", "from": "策划部", "to": "监察部", "remark": "规划方案提交审核"},
+            {"at": "2024-01-01T00:02:00Z", "from": "监察部", "to": "调度部", "remark": "✅ 批准"},
+            {"at": "2024-01-01T00:03:00Z", "from": "调度部", "to": "建设小队", "remark": "派发：系统初始化"},
+            {"at": "2024-01-01T00:04:00Z", "from": "建设小队", "to": "调度部", "remark": "✅ 完成"},
         ]
     }
 ]
@@ -240,7 +240,7 @@ PYEOF
 link_resources() {
   info "创建 data/scripts 软链接以确保 Agent 数据一致..."
   
-  AGENTS=(taizi zhongshu menxia shangshu hubu libu bingbu xingbu gongbu libu_hr zaochao)
+  AGENTS=(vice strategy review dispatch finance scribe combat audit build hr intel)
   LINKED=0
   for agent in "${AGENTS[@]}"; do
     ws="$OC_HOME/workspace-$agent"
@@ -334,7 +334,7 @@ sync_auth() {
   if [ -z "$MAIN_AUTH" ] || [ ! -f "$MAIN_AUTH" ]; then
     warn "未找到已有的 models.json 或 auth-profiles.json"
     warn "请先为任意 Agent 配置 API Key:"
-    echo "    openclaw agents add taizi"
+    echo "    openclaw agents add vice"
     echo "  然后重新运行 install.sh，或手动执行:"
     echo "    bash install.sh --sync-auth"
     return
@@ -343,11 +343,11 @@ sync_auth() {
   # 检查文件内容是否有效（非空 JSON）
   if ! python3 -c "import json; d=json.load(open('$MAIN_AUTH')); assert d" 2>/dev/null; then
     warn "$AUTH_FILENAME 为空或无效，请先配置 API Key:"
-    echo "    openclaw agents add taizi"
+    echo "    openclaw agents add vice"
     return
   fi
 
-  AGENTS=(taizi zhongshu menxia shangshu hubu libu bingbu xingbu gongbu libu_hr zaochao)
+  AGENTS=(vice strategy review dispatch finance scribe combat audit build hr intel)
   SYNCED=0
   for agent in "${AGENTS[@]}"; do
     AGENT_DIR="$OC_HOME/agents/$agent/agent"
@@ -424,12 +424,12 @@ restart_gateway
 
 echo ""
 echo -e "${GREEN}╔══════════════════════════════════════════════════╗${NC}"
-echo -e "${GREEN}║  🎉  三省六部安装完成！                          ║${NC}"
+echo -e "${GREEN}║  🎉  核心部各小队安装完成！                          ║${NC}"
 echo -e "${GREEN}╚══════════════════════════════════════════════════╝${NC}"
 echo ""
 echo "下一步："
 echo "  1. 配置 API Key（如尚未配置）:"
-echo "     openclaw agents add taizi     # 按提示输入 Anthropic API Key"
+echo "     openclaw agents add vice     # 按提示输入 Anthropic API Key"
 echo "     ./install.sh                  # 重新运行以同步到所有 Agent"
 echo "  2. 启动数据刷新循环:  bash scripts/run_loop.sh &"
 echo "  3. 启动看板服务器:    python3 \"\$REPO_DIR/dashboard/server.py\""

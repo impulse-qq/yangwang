@@ -1,4 +1,4 @@
-# PROJECT KNOWLEDGE BASE: 三省六部 · Edict
+# PROJECT KNOWLEDGE BASE: 核心部各小队 · Edict
 
 **Generated:** 2026-04-11  
 **Commit:** 70cd997  
@@ -12,7 +12,7 @@
 
 AI multi-agent collaboration architecture inspired by Tang Dynasty's "Three Departments & Six Ministries" system. 12 specialized agents (11 roles + 1 compatibility) form a governance hierarchy with institutional review gates.
 
-**Key Differentiator:** True separation of powers — planning (中书), review (门下), execution (六部) are distinct with explicit approval chains. Not metaphor — actual workflow enforcement.
+**Key Differentiator:** True separation of powers — planning (中书), review (门下), execution (各小队) are distinct with explicit approval chains. Not metaphor — actual workflow enforcement.
 
 ---
 
@@ -28,17 +28,17 @@ yangwang/
 │   ├── frontend/        # React 18 + Vite + Zustand + Tailwind
 │   └── backend/         # Async services (SQLAlchemy + Redis Streams)
 ├── agents/              # 12 Agent SOUL.md files (personality templates)
-│   ├── taizi/           # Crown Prince — message routing
-│   ├── zhongshu/        # Chancellery — planning
-│   ├── menxia/          # Secretariat — review/rejection
-│   ├── shangshu/        # Secretariat — dispatch
-│   ├── hubu/            # Revenue — data
-│   ├── libu/            # Rites — documentation
-│   ├── bingbu/          # War — code
-│   ├── xingbu/          # Justice — security/compliance
-│   ├── gongbu/          # Works — infrastructure
-│   ├── libu_hr/         # Personnel — agent management
-│   └── zaochao/         # Morning Court Official — news aggregation
+│   ├── vice/           # Crown Prince — message routing
+│   ├── strategy/        # Chancellery — planning
+│   ├── review/          # Secretariat — review/rejection
+│   ├── dispatch/        # Secretariat — dispatch
+│   ├── finance/            # Revenue — data
+│   ├── scribe/            # Rites — documentation
+│   ├── combat/          # War — code
+│   ├── audit/          # Justice — security/compliance
+│   ├── build/          # Works — infrastructure
+│   ├── hr/         # Personnel — agent management
+│   └── intel/         # Morning Court Official — news aggregation
 ├── scripts/             # CLI tools & workflow orchestration
 │   ├── kanban_update.py    # Kanban state machine + data cleaning
 │   ├── skill_manager.py    # Remote skill management
@@ -89,12 +89,12 @@ yangwang/
 
 ### State Machine
 ```
-皇上 → 太子分拣 → 中书规划 → 门下审议 → 已派发 → 执行中 → 待审查 → ✅ 已完成
+团长 → 副团长分拣 → 中书规划 → 监察审核 → 已派遣 → 执行中 → 待审查 → ✅ 已完成
               ↑          │                              │
-              └──── 封驳 ─┘                    阻塞 Blocked
+              └──── 驳回 ─┘                    阻塞 Blocked
 ```
 - **State transitions protected**: `kanban_update.py` validates `_VALID_TRANSITIONS`
-- **Illegal jumps rejected**: e.g., Doing→Taizi blocked with error log
+- **Illegal jumps rejected**: e.g., Doing→Vice blocked with error log
 
 ### Agent Communication
 - Permission matrix enforced — not all agents can message all others
@@ -105,8 +105,8 @@ yangwang/
 
 ## ANTI-PATTERNS (THIS PROJECT)
 
-1. **Never skip 门下省 (menxia) review** — mandatory quality gate, no exceptions
-2. **No agent-to-agent direct messaging** — must go through 尚书省 coordination
+1. **Never skip 监察部 (review) review** — mandatory quality gate, no exceptions
+2. **No agent-to-agent direct messaging** — must go through 调度部 coordination
 3. **State machine violations rejected** — illegal transitions throw errors
 4. **Don't edit data/*.json directly** — use `kanban_update.py` CLI
 5. **No `requirements.txt` in subdirs** (except `edict/backend/`) — root deps only
@@ -124,8 +124,8 @@ yangwang/
 - **React**: `edict/frontend/` built to `dashboard/dist/` (optional)
 
 ### Domain-Driven Naming
-- File/function names use Chinese bureaucratic terms (圣旨, 奏折, 旨意)
-- Agent IDs: `taizi`, `zhongshu`, `menxia`, `shangshu`, `hubu`, etc.
+- File/function names use Chinese bureaucratic terms (任务, 战报, 委托)
+- Agent IDs: `vice`, `strategy`, `review`, `dispatch`, `finance`, etc.
 
 ---
 
@@ -152,7 +152,7 @@ pytest tests/ -v
 python3 scripts/kanban_update.py --help
 
 # Skill management
-python3 scripts/skill_manager.py add-remote --agent zhongshu --name code_review --source <url>
+python3 scripts/skill_manager.py add-remote --agent strategy --name code_review --source <url>
 ```
 
 ---
@@ -172,16 +172,16 @@ python3 scripts/skill_manager.py add-remote --agent zhongshu --name code_review 
 
 | Agent | Role | Can Send To |
 |-------|------|-------------|
-| taizi | Crown Prince (routing) | zhongshu |
-| zhongshu | Chancellery (planning) | taizi, menxia, shangshu |
-| menxia | Secretariat (review) | zhongshu, shangshu |
-| shangshu | Secretariat (dispatch) | zhongshu, menxia, 六部 |
-| hubu | Revenue (data) | shangshu |
-| libu | Rites (docs) | shangshu |
-| bingbu | War (code) | shangshu |
-| xingbu | Justice (security) | shangshu |
-| gongbu | Works (infra) | shangshu |
-| libu_hr | Personnel (HR) | shangshu |
-| zaochao | Morning Court (news) | — |
+| vice | Crown Prince (routing) | strategy |
+| strategy | Chancellery (planning) | vice, review, dispatch |
+| review | Secretariat (review) | strategy, dispatch |
+| dispatch | Secretariat (dispatch) | strategy, review, 各小队 |
+| finance | Revenue (data) | dispatch |
+| scribe | Rites (docs) | dispatch |
+| combat | War (code) | dispatch |
+| audit | Justice (security) | dispatch |
+| build | Works (infra) | dispatch |
+| hr | Personnel (HR) | dispatch |
+| intel | Morning Court (news) | — |
 
 See `docs/task-dispatch-architecture.md` for full 9500+ word architecture deep-dive.

@@ -11,15 +11,15 @@ router = APIRouter()
 
 # Agent 元信息（对应 agents/ 目录下的 SOUL.md）
 AGENT_META = {
-    "zaochao": {"name": "早朝（朝会主持）", "role": "朝会召集与议程管理", "icon": "🏛️"},
-    "shangshu": {"name": "尚书令", "role": "总协调与任务监督", "icon": "📜"},
-    "zhongshu": {"name": "中书省", "role": "起草诏令与方案规划", "icon": "✍️"},
-    "menxia": {"name": "门下省", "role": "审核与封驳", "icon": "🔍"},
-    "libu": {"name": "吏部", "role": "人事与组织管理", "icon": "👤"},
-    "hubu": {"name": "户部", "role": "财务与资源管理", "icon": "💰"},
-    "gongbu": {"name": "工部", "role": "工程与技术实施", "icon": "🔧"},
-    "xingbu": {"name": "刑部", "role": "规范与质量审查", "icon": "⚖️"},
-    "bingbu": {"name": "兵部", "role": "安全与应急响应", "icon": "🛡️"},
+    "intel": {"name": "晨报（朝会主持）", "role": "朝会召集与议程管理", "icon": "🏛️"},
+    "dispatch": {"name": "调度部长", "role": "总协调与任务监督", "icon": "📜"},
+    "strategy": {"name": "策划部", "role": "起草诏令与方案规划", "icon": "✍️"},
+    "review": {"name": "监察部", "role": "审核与驳回", "icon": "🔍"},
+    "scribe": {"name": "人事小队", "role": "人事与组织管理", "icon": "👤"},
+    "finance": {"name": "财务小队", "role": "财务与资源管理", "icon": "💰"},
+    "build": {"name": "建设小队", "role": "工程与技术实施", "icon": "🔧"},
+    "audit": {"name": "审判小队", "role": "规范与质量审查", "icon": "⚖️"},
+    "combat": {"name": "战斗小队", "role": "安全与应急响应", "icon": "🛡️"},
 }
 
 

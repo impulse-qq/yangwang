@@ -48,3 +48,4 @@ _*.py
 # Generated docs
 *.docx
 *.pdf
+.superpowers/
