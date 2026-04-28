@@ -1,5 +1,5 @@
 """Lightweight KanbanGateway client — zero dependencies, stdlib only."""
-import hmac, hashlib, json, os, pathlib, random, time, urllib.request
+import hmac, hashlib, json, os, pathlib, secrets, time, urllib.request
 from typing import Optional
 
 
@@ -39,7 +39,7 @@ class KanbanClient:
         payload = dict(payload)
         payload["agentId"] = self.agent_id
         payload["ts"] = int(time.time())
-        payload["nonce"] = "%016x" % random.getrandbits(64)
+        payload["nonce"] = secrets.token_hex(8)
         canonical = json.dumps({k: v for k, v in payload.items() if k != "hmac"},
                                sort_keys=True, ensure_ascii=False)
         sig = hmac.new(self.key.encode(), canonical.encode(), hashlib.sha256).hexdigest()
@@ -59,7 +59,17 @@ class KanbanClient:
             try:
                 with urllib.request.urlopen(req, timeout=30) as resp:
                     return json.loads(resp.read().decode())
-            except Exception as e:
+            except urllib.error.HTTPError as e:
+                if e.code in (400, 401, 403, 404, 409):
+                    return {"ok": False, "error": str(e), "status": e.code}
+                if e.code == 429:
+                    last_err = e
+                    time.sleep(2 ** attempt)
+                    continue
+                # 5xx and other HTTP errors
+                last_err = e
+                time.sleep(2 ** attempt)
+            except (urllib.error.URLError, TimeoutError) as e:
                 last_err = e
                 time.sleep(2 ** attempt)
         return {"ok": False, "error": str(last_err)}
