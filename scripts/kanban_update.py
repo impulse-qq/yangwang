@@ -49,26 +49,31 @@ logging.basicConfig(
 # Try new gateway client first
 _KG_AVAILABLE = False
 try:
+    _orig_sys_path = sys.path[:]
     sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
     from kanban_client.client import KanbanClient
     _KG_AVAILABLE = True
-except Exception:
-    pass
+except Exception as _kg_err:
+    log.debug(f"KanbanClient import failed: {_kg_err}")
+finally:
+    sys.path = _orig_sys_path if '_orig_sys_path' in dir() else sys.path
 
 
 def _gateway_available() -> bool:
     if not _KG_AVAILABLE:
         return False
     import urllib.request
+    url = os.environ.get("KANBAN_GATEWAY_URL", "http://127.0.0.1:7892/")
     try:
-        urllib.request.urlopen("http://127.0.0.1:7892/", timeout=1)
+        urllib.request.urlopen(url, timeout=1)
         return True
     except Exception:
         return False
 
 
 def _call_gateway(argv):
-    client = KanbanClient()
+    base_url = os.environ.get("KANBAN_GATEWAY_URL")
+    client = KanbanClient(base_url=base_url) if base_url else KanbanClient()
     cmd = argv[1] if len(argv) > 1 else ""
     if cmd == "state" and len(argv) >= 4:
         result = client.state(argv[2], argv[3], argv[4] if len(argv) > 4 else "")
