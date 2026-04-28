@@ -41,3 +41,32 @@ def test_high_risk_transition():
     p = PolicyEngine()
     assert p.is_high_risk("AuditReview", "Done") is True
     assert p.is_high_risk("Strategy", "AuditReview") is False
+
+
+def test_sanitize_remark_truncation():
+    p = PolicyEngine()
+    long_text = "A" * 150
+    result = p.sanitize_remark(long_text)
+    assert len(result) == 121  # 120 chars + ellipsis
+    assert result.endswith("…")
+
+
+def test_get_confirm_authority():
+    p = PolicyEngine()
+    assert p.get_confirm_authority("AuditReview") == "review"
+    assert p.get_confirm_authority("Doing") == "dispatch"
+    assert p.get_confirm_authority("Unknown") is None
+
+
+def test_is_high_risk_cancelled():
+    p = PolicyEngine()
+    assert p.is_high_risk("Doing", "Cancelled") is True
+    assert p.is_high_risk("AuditReview", "Cancelled") is True
+
+
+def test_sanitize_text_ellipsis():
+    p = PolicyEngine()
+    long_text = "B" * 100
+    result = p.sanitize_text(long_text, max_len=50)
+    assert len(result) == 51  # 50 chars + ellipsis
+    assert result.endswith("…")

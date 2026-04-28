@@ -2,10 +2,12 @@
 import re
 from typing import Optional, Tuple
 
+__all__ = ["PolicyEngine", "AGENT_POLICY", "HIGH_RISK_TRANSITIONS", "CONFIRM_AUTHORITY"]
+
 # Try to import canonical state machine from backend, fallback to inline
 try:
     from edict.backend.app.models.task import STATE_TRANSITIONS, TaskState
-except Exception:
+except (ImportError, ModuleNotFoundError):
     class TaskState:
         Vice = "Vice"
         Strategy = "Strategy"
@@ -93,7 +95,7 @@ class PolicyEngine:
         t = (raw or "").strip()
         t = re.split(r"\n*Conversation\b", t, maxsplit=1)[0].strip()
         t = re.split(r"\n*```", t, maxsplit=1)[0].strip()
-        t = re.sub(r"[/\\.~][A-Za-z0-9_\-./]+(?:\.(?:py|js|ts|json|md|sh|yaml|yml|txt|csv|html|css|log))?", "", t)
+        t = re.sub(r"(?:^|\s)(?:/Users/|/home/|/tmp/|C:\\\\|~/|\./)[A-Za-z0-9_\-./\\]*(?:\.[A-Za-z0-9]+)?", "", t)
         t = re.sub(r"https?://\S+", "", t)
         t = re.sub(r"\bhttps?[:：]?\s*$", "", t)
         t = re.sub(r"^(传达委托|发布委托)([（(][^)）]*[)）])?[：:：]\s*", "", t)
@@ -103,22 +105,22 @@ class PolicyEngine:
             t = t[:max_len] + "…"
         return t
 
-    def sanitize_title(self, raw: str) -> str:
-        return self.sanitize_text(raw, 80)
+    @staticmethod
+    def sanitize_title(raw: str) -> str:
+        return PolicyEngine.sanitize_text(raw, 80)
 
-    def sanitize_remark(self, raw: str) -> str:
-        return self.sanitize_text(raw, 120)
+    @staticmethod
+    def sanitize_remark(raw: str) -> str:
+        return PolicyEngine.sanitize_text(raw, 120)
 
     def validate_task_title(self, title: str) -> Tuple[bool, str]:
-        t = (title or "").strip()
+        t = self.sanitize_title(title or "").strip()
         if len(t) < _MIN_TITLE_LEN:
             return False, f"标题过短（{len(t)}<{_MIN_TITLE_LEN}字），疑似非委托"
         if t.lower() in _JUNK_TITLES:
             return False, f'标题 "{t}" 不是有效委托'
         if re.fullmatch(r"[\s?？!！.。,，…·\-—~]+", t):
             return False, "标题只有标点符号"
-        if re.match(r"^[/\\~.]", t) or re.search(r"/[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+", t):
-            return False, "标题看起来像文件路径，请用中文概括任务"
         if re.fullmatch(r"[\s\W]*", t):
             return False, "标题清洗后为空"
         return True, ""
