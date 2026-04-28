@@ -46,6 +46,52 @@ logging.basicConfig(
     level=logging.INFO, format="%(asctime)s [%(name)s] %(message)s", datefmt="%H:%M:%S"
 )
 
+# Try new gateway client first
+_KG_AVAILABLE = False
+try:
+    sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
+    from kanban_client.client import KanbanClient
+    _KG_AVAILABLE = True
+except Exception:
+    pass
+
+
+def _gateway_available() -> bool:
+    if not _KG_AVAILABLE:
+        return False
+    import urllib.request
+    try:
+        urllib.request.urlopen("http://127.0.0.1:7892/", timeout=1)
+        return True
+    except Exception:
+        return False
+
+
+def _call_gateway(argv):
+    client = KanbanClient()
+    cmd = argv[1] if len(argv) > 1 else ""
+    if cmd == "state" and len(argv) >= 4:
+        result = client.state(argv[2], argv[3], argv[4] if len(argv) > 4 else "")
+    elif cmd == "flow" and len(argv) >= 6:
+        result = client.flow(argv[2], argv[3], argv[4], argv[5] if len(argv) > 5 else "")
+    elif cmd == "progress" and len(argv) >= 4:
+        result = client.progress(argv[2], argv[3], argv[4] if len(argv) > 4 else "")
+    elif cmd == "todo" and len(argv) >= 6:
+        result = client.todo(argv[2], int(argv[3]), argv[4], argv[5], argv[6] if len(argv) > 6 else "")
+    elif cmd == "done" and len(argv) >= 4:
+        result = client.done(argv[2], argv[3] if len(argv) > 3 else "", argv[4] if len(argv) > 4 else "")
+    elif cmd == "create" and len(argv) >= 6:
+        # create not exposed via simple client yet; fall through
+        result = {"ok": False}
+    else:
+        result = {"ok": False, "error": f"Unknown command: {cmd}"}
+
+    if not result.get("ok"):
+        # Gateway call failed or not supported; fallback to legacy
+        return False
+    print(f"[看板] Gateway: {cmd} {result}")
+    return True
+
 # 文件锁 —— 防止多 Agent 同时读写 tasks_source.json
 from file_lock import atomic_json_read, atomic_json_update  # noqa: E402
 from utils import now_iso  # noqa: E402
@@ -1286,7 +1332,12 @@ _CMD_MIN_ARGS = {
     "delegate-result": 3,
 }
 
-if __name__ == "__main__":
+def main():
+    if _gateway_available():
+        if _call_gateway(sys.argv):
+            return
+        log.warning("Gateway 调用失败，fallback 到直接文件操作")
+
     args = sys.argv[1:]
     if not args:
         print(__doc__)
@@ -1387,3 +1438,7 @@ if __name__ == "__main__":
     else:
         print(__doc__)
         sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
