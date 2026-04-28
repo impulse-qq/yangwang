@@ -47,6 +47,40 @@ class _FakeHandler(BaseHTTPRequestHandler):
         pass
 
 
+class _RetryHandler(BaseHTTPRequestHandler):
+    request_count = 0
+
+    def do_POST(self):
+        _RetryHandler.request_count += 1
+        if _RetryHandler.request_count < 3:
+            self.send_response(503)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": "temporarily unavailable"}).encode())
+            return
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.end_headers()
+        self.wfile.write(json.dumps({"ok": True}).encode())
+
+    def log_message(self, *a):
+        pass
+
+
+class _BadRequestHandler(BaseHTTPRequestHandler):
+    request_count = 0
+
+    def do_POST(self):
+        _BadRequestHandler.request_count += 1
+        self.send_response(400)
+        self.send_header("Content-Type", "application/json")
+        self.end_headers()
+        self.wfile.write(json.dumps({"error": "bad request"}).encode())
+
+    def log_message(self, *a):
+        pass
+
+
 def test_client_signs_and_sends():
     _FakeHandler.verification_error = None
     srv = HTTPServer(("127.0.0.1", 0), _FakeHandler)
@@ -62,4 +96,41 @@ def test_client_signs_and_sends():
     result = client.state("T001", "AuditReview", "方案提交审核")
     assert result["ok"] is True
     assert _FakeHandler.verification_error is None, _FakeHandler.verification_error
+    srv.shutdown()
+
+
+def test_retry_on_5xx_then_success():
+    _RetryHandler.request_count = 0
+    srv = HTTPServer(("127.0.0.1", 0), _RetryHandler)
+    t = threading.Thread(target=srv.serve_forever, daemon=True)
+    t.start()
+    port = srv.server_address[1]
+
+    client = KanbanClient(
+        agent_id="strategy",
+        key="secret",
+        base_url=f"http://127.0.0.1:{port}"
+    )
+    result = client.state("T002", "AuditReview")
+    assert result["ok"] is True
+    assert _RetryHandler.request_count == 3
+    srv.shutdown()
+
+
+def test_no_retry_on_4xx():
+    _BadRequestHandler.request_count = 0
+    srv = HTTPServer(("127.0.0.1", 0), _BadRequestHandler)
+    t = threading.Thread(target=srv.serve_forever, daemon=True)
+    t.start()
+    port = srv.server_address[1]
+
+    client = KanbanClient(
+        agent_id="strategy",
+        key="secret",
+        base_url=f"http://127.0.0.1:{port}"
+    )
+    result = client.state("T003", "AuditReview")
+    assert result["ok"] is False
+    assert result.get("status") == 400
+    assert _BadRequestHandler.request_count == 1
     srv.shutdown()

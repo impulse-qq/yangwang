@@ -1,5 +1,5 @@
 """Lightweight KanbanGateway client — zero dependencies, stdlib only."""
-import hmac, hashlib, json, os, pathlib, secrets, time, urllib.request
+import hmac, hashlib, json, os, pathlib, re, secrets, time, urllib.request
 from typing import Optional
 
 
@@ -17,7 +17,6 @@ class KanbanClient:
             if v:
                 return v
         cwd = str(pathlib.Path.cwd())
-        import re
         m = re.search(r"workspace-([a-zA-Z0-9_\-]+)", cwd)
         if m:
             return m.group(1)
