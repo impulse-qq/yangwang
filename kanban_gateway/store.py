@@ -24,7 +24,7 @@ def atomic_read(path: pathlib.Path, default: T) -> T:
         fcntl.flock(f.fileno(), fcntl.LOCK_SH)
         try:
             return json.load(f)
-        except Exception:
+        except (json.JSONDecodeError, ValueError):
             return default
         finally:
             fcntl.flock(f.fileno(), fcntl.LOCK_UN)
@@ -33,24 +33,31 @@ def atomic_read(path: pathlib.Path, default: T) -> T:
 def atomic_write(path: pathlib.Path, data: Any) -> None:
     """Write *data* as JSON to *path* atomically.
 
-    Uses a temp file in the parent directory + os.replace.
+    Uses a temp file in the parent directory + os.replace, guarded by
+    an exclusive flock on the target file so concurrent writers cannot
+    race and lose data.
     """
     path.parent.mkdir(parents=True, exist_ok=True)
-    tmp_fd, tmp_path = tempfile.mkstemp(
-        dir=str(path.parent), suffix=".tmp", prefix=path.stem + "_"
-    )
-    try:
-        with os.fdopen(tmp_fd, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
-            f.flush()
-            os.fsync(f.fileno())
-        os.replace(tmp_path, str(path))
-    except Exception:
+    with open(path, "a+", encoding="utf-8") as lockfile:
+        fcntl.flock(lockfile.fileno(), fcntl.LOCK_EX)
         try:
-            os.unlink(tmp_path)
-        except FileNotFoundError:
-            pass
-        raise
+            fd, tmp = tempfile.mkstemp(
+                dir=str(path.parent), suffix=".tmp", prefix=path.stem + "_"
+            )
+            try:
+                with os.fdopen(fd, "w", encoding="utf-8") as f:
+                    json.dump(data, f, ensure_ascii=False, indent=2)
+                    f.flush()
+                    os.fsync(f.fileno())
+                os.replace(tmp, str(path))
+            except OSError:
+                try:
+                    os.unlink(tmp)
+                except FileNotFoundError:
+                    pass
+                raise
+        finally:
+            fcntl.flock(lockfile.fileno(), fcntl.LOCK_UN)
 
 
 def atomic_update(
@@ -68,7 +75,7 @@ def atomic_update(
             f.seek(0)
             try:
                 data = json.load(f)
-            except Exception:
+            except (json.JSONDecodeError, ValueError):
                 data = default
             result = modifier(data)
             f.seek(0)
