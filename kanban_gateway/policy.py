@@ -66,8 +66,15 @@ class PolicyEngine:
     def check_transition(self, old_state: str, new_state: str) -> bool:
         if not STATE_TRANSITIONS:
             return True  # fallback: permissive
-        allowed = STATE_TRANSITIONS.get(old_state, set())
-        return new_state in allowed
+        # Build string-keyed map once lazily (handles both backend enum keys and fallback string keys)
+        if not hasattr(self, "_str_transitions"):
+            def _to_str(x):
+                return x.value if hasattr(x, "value") else str(x)
+            self._str_transitions = {
+                _to_str(k): {_to_str(v) for v in vals}
+                for k, vals in STATE_TRANSITIONS.items()
+            }
+        return new_state in self._str_transitions.get(old_state, set())
 
     def check_permission(self, agent_id: str, cmd: str) -> bool:
         policy = AGENT_POLICY.get(agent_id)
