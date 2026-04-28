@@ -27,7 +27,7 @@ def gateway(tmp_path):
 def _sign(body: dict, key: bytes) -> dict:
     payload = dict(body)
     payload.pop("hmac", None)
-    sig = hmac.new(key, json.dumps(payload, sort_keys=True).encode(), hashlib.sha256).hexdigest()
+    sig = hmac.new(key, json.dumps(payload, sort_keys=True, ensure_ascii=False).encode(), hashlib.sha256).hexdigest()
     payload["hmac"] = f"sha256={sig}"
     return payload
 
