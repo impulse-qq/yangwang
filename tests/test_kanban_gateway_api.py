@@ -39,10 +39,16 @@ def _post(port, path, body):
         headers={"Content-Type": "application/json"},
     )
     try:
-        resp = urllib.request.urlopen(req)
-        return resp.status, json.loads(resp.read())
+        resp = urllib.request.urlopen(req, timeout=10)
+        try:
+            return resp.status, json.loads(resp.read())
+        finally:
+            resp.close()
     except urllib.error.HTTPError as e:
-        return e.code, json.loads(e.read())
+        try:
+            return e.code, json.loads(e.read())
+        finally:
+            e.close()
 
 
 def test_create_and_state_flow(gateway):
@@ -335,6 +341,7 @@ def test_concurrent_state_changes(gateway):
     assert resp["task"]["state"] == "AuditReview"
 
 
+@pytest.mark.order(1)
 def test_payload_too_large(gateway):
     port = gateway.server_port
     # Use a payload just over the 1 MB limit so the server rejects it quickly
