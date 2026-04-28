@@ -118,6 +118,21 @@ create_workspaces() {
 4. 涉及删除/外发动作必须明确标注并等待批准。
 AGENTS_EOF
   done
+
+  # ── Generate KanbanGateway keys for each agent ──
+  info "生成看板网关认证密钥..."
+  for agent_id in vice strategy review dispatch finance scribe combat audit build hr intel; do
+      key_file="$OC_HOME/workspace-$agent_id/.kanban_key"
+      if [ ! -f "$key_file" ]; then
+          if command -v openssl &>/dev/null; then
+              openssl rand -hex 32 > "$key_file"
+          else
+              python3 -c "import secrets; open('$key_file','w').write(secrets.token_hex(32))"
+          fi
+          chmod 600 "$key_file"
+      fi
+  done
+  log "看板网关密钥已生成"
 }
 
 # ── Step 2: 注册 Agents ─────────────────────────────────────
