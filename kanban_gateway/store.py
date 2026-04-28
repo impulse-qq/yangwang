@@ -11,23 +11,25 @@ from typing import Any, Callable, TypeVar
 
 T = TypeVar("T")
 
+__all__ = ["atomic_read", "atomic_write", "atomic_update"]
+
 
 def atomic_read(path: pathlib.Path, default: T) -> T:
     """Read JSON from *path* under a shared lock.
 
     Returns *default* if the file does not exist or is malformed.
     """
-    if not path.exists():
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            fcntl.flock(f.fileno(), fcntl.LOCK_SH)
+            try:
+                return json.load(f)
+            except (json.JSONDecodeError, ValueError):
+                return default
+            finally:
+                fcntl.flock(f.fileno(), fcntl.LOCK_UN)
+    except FileNotFoundError:
         return default
-
-    with open(path, "r", encoding="utf-8") as f:
-        fcntl.flock(f.fileno(), fcntl.LOCK_SH)
-        try:
-            return json.load(f)
-        except (json.JSONDecodeError, ValueError):
-            return default
-        finally:
-            fcntl.flock(f.fileno(), fcntl.LOCK_UN)
 
 
 def atomic_write(path: pathlib.Path, data: Any) -> None:
@@ -50,7 +52,7 @@ def atomic_write(path: pathlib.Path, data: Any) -> None:
                     f.flush()
                     os.fsync(f.fileno())
                 os.replace(tmp, str(path))
-            except OSError:
+            except Exception:
                 try:
                     os.unlink(tmp)
                 except FileNotFoundError:

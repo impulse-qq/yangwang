@@ -75,3 +75,14 @@ class TestAtomicUpdate:
         result = atomic_update(path, lambda items: items + [{"id": "first"}], [])
         assert result == [{"id": "first"}]
         assert atomic_read(path, []) == [{"id": "first"}]
+
+    def test_atomic_write_creates_nested_dirs(self, tmp_path: pathlib.Path) -> None:
+        path = tmp_path / "a" / "b" / "tasks.json"
+        atomic_write(path, [{"id": "T1"}])
+        assert atomic_read(path, []) == [{"id": "T1"}]
+
+    def test_atomic_update_creates_nested_dirs(self, tmp_path: pathlib.Path) -> None:
+        path = tmp_path / "x" / "y" / "tasks.json"
+        result = atomic_update(path, lambda items: items + [{"id": "T1"}], [])
+        assert result == [{"id": "T1"}]
+        assert atomic_read(path, []) == [{"id": "T1"}]
