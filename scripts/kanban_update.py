@@ -48,6 +48,7 @@ logging.basicConfig(
 
 # Try new gateway client first
 _KG_AVAILABLE = False
+_orig_sys_path = None
 try:
     _orig_sys_path = sys.path[:]
     sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
@@ -56,16 +57,17 @@ try:
 except Exception as _kg_err:
     log.debug(f"KanbanClient import failed: {_kg_err}")
 finally:
-    sys.path = _orig_sys_path if '_orig_sys_path' in dir() else sys.path
+    if _orig_sys_path is not None:
+        sys.path = _orig_sys_path
 
 
 def _gateway_available() -> bool:
     if not _KG_AVAILABLE:
         return False
     import urllib.request
-    url = os.environ.get("KANBAN_GATEWAY_URL", "http://127.0.0.1:7892/")
+    url = os.environ.get("KANBAN_GATEWAY_URL", "http://127.0.0.1:7892")
     try:
-        urllib.request.urlopen(url, timeout=1)
+        urllib.request.urlopen(url, timeout=0.2)
         return True
     except Exception:
         return False
@@ -73,29 +75,33 @@ def _gateway_available() -> bool:
 
 def _call_gateway(argv):
     base_url = os.environ.get("KANBAN_GATEWAY_URL")
-    client = KanbanClient(base_url=base_url) if base_url else KanbanClient()
-    cmd = argv[1] if len(argv) > 1 else ""
-    if cmd == "state" and len(argv) >= 4:
-        result = client.state(argv[2], argv[3], argv[4] if len(argv) > 4 else "")
-    elif cmd == "flow" and len(argv) >= 6:
-        result = client.flow(argv[2], argv[3], argv[4], argv[5] if len(argv) > 5 else "")
-    elif cmd == "progress" and len(argv) >= 4:
-        result = client.progress(argv[2], argv[3], argv[4] if len(argv) > 4 else "")
-    elif cmd == "todo" and len(argv) >= 6:
-        result = client.todo(argv[2], int(argv[3]), argv[4], argv[5], argv[6] if len(argv) > 6 else "")
-    elif cmd == "done" and len(argv) >= 4:
-        result = client.done(argv[2], argv[3] if len(argv) > 3 else "", argv[4] if len(argv) > 4 else "")
-    elif cmd == "create" and len(argv) >= 6:
-        # create not exposed via simple client yet; fall through
-        result = {"ok": False}
-    else:
-        result = {"ok": False, "error": f"Unknown command: {cmd}"}
+    try:
+        client = KanbanClient(base_url=base_url) if base_url else KanbanClient()
+        cmd = argv[1] if len(argv) > 1 else ""
+        if cmd == "state" and len(argv) >= 4:
+            result = client.state(argv[2], argv[3], argv[4] if len(argv) > 4 else "")
+        elif cmd == "flow" and len(argv) >= 6:
+            result = client.flow(argv[2], argv[3], argv[4], argv[5] if len(argv) > 5 else "")
+        elif cmd == "progress" and len(argv) >= 4:
+            result = client.progress(argv[2], argv[3], argv[4] if len(argv) > 4 else "")
+        elif cmd == "todo" and len(argv) >= 6:
+            result = client.todo(argv[2], int(argv[3]), argv[4], argv[5], argv[6] if len(argv) > 6 else "")
+        elif cmd == "done" and len(argv) >= 4:
+            result = client.done(argv[2], argv[3] if len(argv) > 3 else "", argv[4] if len(argv) > 4 else "")
+        elif cmd == "create" and len(argv) >= 6:
+            # create not exposed via simple client yet; fall through
+            result = {"ok": False}
+        else:
+            result = {"ok": False, "error": f"Unknown command: {cmd}"}
 
-    if not result.get("ok"):
-        # Gateway call failed or not supported; fallback to legacy
+        if not result.get("ok"):
+            log.debug(f"Gateway call failed: {result.get('error')}")
+            return False
+        print(f"[看板] Gateway: {cmd} {result}")
+        return True
+    except Exception as e:
+        log.debug(f"Gateway exception: {e}")
         return False
-    print(f"[看板] Gateway: {cmd} {result}")
-    return True
 
 # 文件锁 —— 防止多 Agent 同时读写 tasks_source.json
 from file_lock import atomic_json_read, atomic_json_update  # noqa: E402
