@@ -2,13 +2,11 @@
 import json
 import logging
 import pathlib
-import time
-import uuid
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse
 
-from .store import atomic_read, atomic_write, atomic_update
-from .auth import HMACVerifier, load_agent_keys
+from .store import atomic_read, atomic_update
+from .auth import HMACVerifier
 from .policy import PolicyEngine
 
 log = logging.getLogger("kanban.gateway")
@@ -26,6 +24,14 @@ STATE_ORG_MAP = {
     "PendingConfirm": "调度部",
     "Pending": "策划部",
 }
+
+
+class GatewayError(Exception):
+    def __init__(self, message: str, code: str, status: int = 400):
+        self.message = message
+        self.code = code
+        self.status = status
+        super().__init__(message)
 
 
 class _Handler(BaseHTTPRequestHandler):
@@ -62,6 +68,9 @@ class _Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         p = urlparse(self.path).path
         length = int(self.headers.get("Content-Length", 0))
+        if length > 1_000_000:
+            self._send_json({"ok": False, "error": "PAYLOAD_TOO_LARGE", "code": "PAYLOAD_TOO_LARGE"}, 413)
+            return
         raw = self.rfile.read(length) if length else b""
         try:
             body = json.loads(raw) if raw else {}
@@ -69,43 +78,37 @@ class _Handler(BaseHTTPRequestHandler):
             self._send_json({"ok": False, "error": "INVALID_JSON"}, 400)
             return
 
-        if p == "/api/v1/kanban/create":
-            self._handle_create(body)
-        elif p == "/api/v1/kanban/state":
-            self._handle_state(body)
-        elif p == "/api/v1/kanban/flow":
-            self._handle_flow(body)
-        elif p == "/api/v1/kanban/progress":
-            self._handle_progress(body)
-        elif p == "/api/v1/kanban/todo":
-            self._handle_todo(body)
-        elif p == "/api/v1/kanban/done":
-            self._handle_done(body)
-        elif p == "/api/v1/kanban/review-action":
-            self._handle_review(body)
-        else:
-            self._send_json({"ok": False, "error": "NOT_FOUND"}, 404)
+        try:
+            if p == "/api/v1/kanban/create":
+                self._handle_create(body)
+            elif p == "/api/v1/kanban/state":
+                self._handle_state(body)
+            elif p == "/api/v1/kanban/flow":
+                self._handle_flow(body)
+            elif p == "/api/v1/kanban/progress":
+                self._handle_progress(body)
+            elif p == "/api/v1/kanban/todo":
+                self._handle_todo(body)
+            elif p == "/api/v1/kanban/done":
+                self._handle_done(body)
+            elif p == "/api/v1/kanban/review-action":
+                self._handle_review(body)
+            else:
+                self._send_json({"ok": False, "error": "NOT_FOUND"}, 404)
+        except GatewayError as e:
+            self._send_json({"ok": False, "error": e.message, "code": e.code}, e.status)
 
     def _auth(self, body: dict) -> str:
         agent_id = self.server._verifier.verify(body)
         if not agent_id:
-            self._send_json(
-                {"ok": False, "error": "UNAUTHORIZED", "code": "UNAUTHORIZED"}, 401
-            )
-            return ""
+            raise GatewayError("UNAUTHORIZED", "UNAUTHORIZED", 401)
         return agent_id
 
     def _check_perm(self, agent_id: str, cmd: str) -> bool:
         if not self.server._policy.check_permission(agent_id, cmd):
-            self._send_json(
-                {
-                    "ok": False,
-                    "error": f"Agent {agent_id} cannot execute {cmd}",
-                    "code": "FORBIDDEN",
-                },
-                403,
+            raise GatewayError(
+                f"Agent {agent_id} cannot execute {cmd}", "FORBIDDEN", 403
             )
-            return False
         return True
 
     def _now_iso(self) -> str:
@@ -117,10 +120,7 @@ class _Handler(BaseHTTPRequestHandler):
         title = self.server._policy.sanitize_title(body.get("title", ""))
         ok, reason = self.server._policy.validate_task_title(title)
         if not ok:
-            self._send_json(
-                {"ok": False, "error": reason, "code": "INVALID_TITLE"}, 400
-            )
-            return
+            raise GatewayError(reason, "INVALID_TITLE", 400)
 
         task_id = body.get("taskId")
         state = body.get("state", "Pending")
@@ -129,7 +129,8 @@ class _Handler(BaseHTTPRequestHandler):
         remark = self.server._policy.sanitize_remark(body.get("remark", ""))
 
         def modifier(tasks):
-            tasks = [t for t in tasks if t.get("id") != task_id]
+            if any(t.get("id") == task_id for t in tasks):
+                raise GatewayError("Task already exists", "TASK_EXISTS", 409)
             tasks.insert(
                 0,
                 {
@@ -161,42 +162,51 @@ class _Handler(BaseHTTPRequestHandler):
 
     def _handle_state(self, body):
         agent_id = self._auth(body)
-        if not agent_id or not self._check_perm(agent_id, "state"):
-            return
+        self._check_perm(agent_id, "state")
         task_id = body.get("taskId")
         new_state = body.get("newState")
         now_text = body.get("nowText", "")
-        tasks = atomic_read(self.server._tasks_file, [])
-        task = next((t for t in tasks if t.get("id") == task_id), None)
-        if not task:
-            self._send_json(
-                {"ok": False, "error": "Task not found", "code": "TASK_NOT_FOUND"}, 404
-            )
-            return
+        high_risk = False
+        old_state = None
 
-        old_state = task.get("state", "")
-        if not self.server._policy.check_transition(old_state, new_state):
-            self._send_json(
-                {
-                    "ok": False,
-                    "error": f"Invalid transition {old_state} → {new_state}",
-                    "code": "INVALID_TRANSITION",
-                },
-                409,
-            )
-            return
+        def modifier(tasks):
+            nonlocal high_risk, old_state
+            task = next((t for t in tasks if t.get("id") == task_id), None)
+            if not task:
+                raise GatewayError("Task not found", "TASK_NOT_FOUND", 404)
 
-        if self.server._policy.is_high_risk(old_state, new_state):
-            task["state"] = "PendingConfirm"
-            task["pending_confirm"] = {
-                "target_state": new_state,
-                "requested_by": agent_id,
-                "requested_at": self._now_iso(),
-                "confirm_by": self.server._policy.get_confirm_authority(old_state)
-                or "dispatch",
-            }
-            task["now"] = f"待确认: {old_state}→{new_state}"
-            atomic_write(self.server._tasks_file, tasks)
+            old_state = task.get("state", "")
+            if not self.server._policy.check_transition(old_state, new_state):
+                raise GatewayError(
+                    f"Invalid transition {old_state} → {new_state}",
+                    "INVALID_TRANSITION",
+                    409,
+                )
+
+            if self.server._policy.is_high_risk(old_state, new_state):
+                task["state"] = "PendingConfirm"
+                task["pending_confirm"] = {
+                    "target_state": new_state,
+                    "requested_by": agent_id,
+                    "requested_at": self._now_iso(),
+                    "confirm_by": self.server._policy.get_confirm_authority(old_state)
+                    or "dispatch",
+                }
+                task["now"] = f"待确认: {old_state}→{new_state}"
+                task["updatedAt"] = self._now_iso()
+                high_risk = True
+                return tasks
+
+            task["state"] = new_state
+            if new_state in STATE_ORG_MAP:
+                task["org"] = STATE_ORG_MAP[new_state]
+            if now_text:
+                task["now"] = now_text
+            task["updatedAt"] = self._now_iso()
+            return tasks
+
+        atomic_update(self.server._tasks_file, modifier, [])
+        if high_risk:
             self._send_json(
                 {
                     "ok": True,
@@ -208,13 +218,6 @@ class _Handler(BaseHTTPRequestHandler):
             )
             return
 
-        task["state"] = new_state
-        if new_state in STATE_ORG_MAP:
-            task["org"] = STATE_ORG_MAP[new_state]
-        if now_text:
-            task["now"] = now_text
-        task["updatedAt"] = self._now_iso()
-        atomic_write(self.server._tasks_file, tasks)
         self._send_json(
             {
                 "ok": True,
@@ -226,8 +229,7 @@ class _Handler(BaseHTTPRequestHandler):
 
     def _handle_flow(self, body):
         agent_id = self._auth(body)
-        if not agent_id or not self._check_perm(agent_id, "flow"):
-            return
+        self._check_perm(agent_id, "flow")
         task_id = body.get("taskId")
         from_dept = body.get("fromDept", "")
         to_dept = body.get("toDept", "")
@@ -236,7 +238,7 @@ class _Handler(BaseHTTPRequestHandler):
         def modifier(tasks):
             t = next((x for x in tasks if x.get("id") == task_id), None)
             if not t:
-                return tasks
+                raise GatewayError("Task not found", "TASK_NOT_FOUND", 404)
             t.setdefault("flow_log", []).append(
                 {
                     "at": self._now_iso(),
@@ -254,22 +256,19 @@ class _Handler(BaseHTTPRequestHandler):
 
     def _handle_progress(self, body):
         agent_id = self._auth(body)
-        if not agent_id or not self._check_perm(agent_id, "progress"):
-            return
+        self._check_perm(agent_id, "progress")
         # Progress is stored as a log entry; minimal implementation for now
         self._send_json({"ok": True})
 
     def _handle_todo(self, body):
         agent_id = self._auth(body)
-        if not agent_id or not self._check_perm(agent_id, "todo"):
-            return
+        self._check_perm(agent_id, "todo")
         # TODO tracking minimal for now
         self._send_json({"ok": True})
 
     def _handle_done(self, body):
         agent_id = self._auth(body)
-        if not agent_id or not self._check_perm(agent_id, "done"):
-            return
+        self._check_perm(agent_id, "done")
         task_id = body.get("taskId")
         output = body.get("outputPath", "")
         summary = body.get("summary", "")
@@ -277,7 +276,14 @@ class _Handler(BaseHTTPRequestHandler):
         def modifier(tasks):
             t = next((x for x in tasks if x.get("id") == task_id), None)
             if not t:
-                return tasks
+                raise GatewayError("Task not found", "TASK_NOT_FOUND", 404)
+            old_state = t.get("state", "")
+            if not self.server._policy.check_transition(old_state, "Done"):
+                raise GatewayError(
+                    f"Invalid transition {old_state} → Done",
+                    "INVALID_TRANSITION",
+                    409,
+                )
             t["state"] = "Done"
             t["output"] = output
             t["now"] = summary or "任务已完成"
@@ -289,37 +295,35 @@ class _Handler(BaseHTTPRequestHandler):
 
     def _handle_review(self, body):
         agent_id = self._auth(body)
-        if not agent_id or not self._check_perm(agent_id, "confirm"):
-            return
+        self._check_perm(agent_id, "confirm")
         task_id = body.get("taskId")
         action = body.get("action")
         comment = body.get("comment", "")
-        tasks = atomic_read(self.server._tasks_file, [])
-        task = next((t for t in tasks if t.get("id") == task_id), None)
-        if not task:
-            self._send_json(
-                {"ok": False, "error": "Task not found", "code": "TASK_NOT_FOUND"}, 404
-            )
-            return
 
-        if action == "approve":
-            pc = task.get("pending_confirm")
-            if pc:
-                task["state"] = pc.get("target_state", task["state"])
-                task.pop("pending_confirm", None)
+        def modifier(tasks):
+            task = next((t for t in tasks if t.get("id") == task_id), None)
+            if not task:
+                raise GatewayError("Task not found", "TASK_NOT_FOUND", 404)
+
+            if action == "approve":
+                pc = task.get("pending_confirm")
+                if pc:
+                    task["state"] = pc.get("target_state", task["state"])
+                    task.pop("pending_confirm", None)
+                else:
+                    task["state"] = "Done"
+                task["now"] = comment or "审批通过"
+            elif action == "reject":
+                task["state"] = "Strategy"
+                task["review_round"] = task.get("review_round", 0) + 1
+                task["now"] = f"驳回：{comment}"
             else:
-                task["state"] = "Done"
-            task["now"] = comment or "审批通过"
-        elif action == "reject":
-            task["state"] = "Strategy"
-            task["review_round"] = task.get("review_round", 0) + 1
-            task["now"] = f"驳回：{comment}"
-        else:
-            self._send_json({"ok": False, "error": "Invalid action"}, 400)
-            return
+                raise GatewayError("Invalid action", "INVALID_ACTION", 400)
 
-        task["updatedAt"] = self._now_iso()
-        atomic_write(self.server._tasks_file, tasks)
+            task["updatedAt"] = self._now_iso()
+            return tasks
+
+        atomic_update(self.server._tasks_file, modifier, [])
         self._send_json({"ok": True})
 
 
@@ -327,6 +331,7 @@ class KanbanGateway(HTTPServer):
     def __init__(self, data_dir: str, port: int = 7892, keys: dict = None):
         self._data_dir = pathlib.Path(data_dir)
         self._tasks_file = self._data_dir / "tasks_source.json"
+        # TODO: implement audit logging
         self._audit_file = self._data_dir / "audit_log.json"
         self._verifier = HMACVerifier(keys or {}, time_window=300)
         self._policy = PolicyEngine()

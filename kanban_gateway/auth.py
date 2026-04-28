@@ -17,7 +17,7 @@ class HMACVerifier:
     @staticmethod
     def canonicalize(body: dict) -> str:
         payload = {k: v for k, v in body.items() if k != "hmac"}
-        return json.dumps(payload, sort_keys=True, ensure_ascii=False)
+        return json.dumps(payload, sort_keys=True, ensure_ascii=True)
 
     def _clean_nonces(self):
         now = time.time()
