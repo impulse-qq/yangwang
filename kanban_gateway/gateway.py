@@ -1,4 +1,5 @@
 """KanbanGateway HTTP server — the control plane for all task mutations."""
+from datetime import datetime, timezone
 import json
 import logging
 import pathlib
@@ -8,6 +9,8 @@ from urllib.parse import urlparse
 from .store import atomic_read, atomic_update
 from .auth import HMACVerifier
 from .policy import PolicyEngine
+
+__all__ = ["KanbanGateway", "GatewayError"]
 
 log = logging.getLogger("kanban.gateway")
 
@@ -69,6 +72,8 @@ class _Handler(BaseHTTPRequestHandler):
         p = urlparse(self.path).path
         length = int(self.headers.get("Content-Length", 0))
         if length > 1_000_000:
+            # Discard the oversize body so the client receives the 413 cleanly.
+            self.rfile.read(length)
             self._send_json({"ok": False, "error": "PAYLOAD_TOO_LARGE", "code": "PAYLOAD_TOO_LARGE"}, 413)
             return
         raw = self.rfile.read(length) if length else b""
@@ -97,6 +102,9 @@ class _Handler(BaseHTTPRequestHandler):
                 self._send_json({"ok": False, "error": "NOT_FOUND"}, 404)
         except GatewayError as e:
             self._send_json({"ok": False, "error": e.message, "code": e.code}, e.status)
+        except Exception as e:
+            log.exception("Unhandled error in %s", p)
+            self._send_json({"ok": False, "error": "INTERNAL_ERROR", "code": "INTERNAL_ERROR"}, 500)
 
     def _auth(self, body: dict) -> str:
         agent_id = self.server._verifier.verify(body)
@@ -112,8 +120,6 @@ class _Handler(BaseHTTPRequestHandler):
         return True
 
     def _now_iso(self) -> str:
-        from datetime import datetime, timezone
-
         return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
 
     def _handle_create(self, body):
@@ -123,6 +129,8 @@ class _Handler(BaseHTTPRequestHandler):
             raise GatewayError(reason, "INVALID_TITLE", 400)
 
         task_id = body.get("taskId")
+        if not task_id:
+            raise GatewayError("taskId is required", "MISSING_TASK_ID", 400)
         state = body.get("state", "Pending")
         org = STATE_ORG_MAP.get(state, body.get("org", ""))
         official = body.get("official", "")
@@ -257,13 +265,13 @@ class _Handler(BaseHTTPRequestHandler):
     def _handle_progress(self, body):
         agent_id = self._auth(body)
         self._check_perm(agent_id, "progress")
-        # Progress is stored as a log entry; minimal implementation for now
+        # TODO: stub — progress log entry not yet implemented
         self._send_json({"ok": True})
 
     def _handle_todo(self, body):
         agent_id = self._auth(body)
         self._check_perm(agent_id, "todo")
-        # TODO tracking minimal for now
+        # TODO: stub — todo tracking not yet implemented
         self._send_json({"ok": True})
 
     def _handle_done(self, body):
@@ -343,6 +351,6 @@ class KanbanGateway(HTTPServer):
 
     @server_port.setter
     def server_port(self, value):
-        # Allow socketserver to set the attribute during bind, but we ignore it
-        # because we always read from server_address.
+        # Necessary no-op: socketserver sets this during bind with port=0.
+        # We ignore writes because the canonical value lives in server_address.
         pass
